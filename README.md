@@ -1,0 +1,1 @@
+ros2 pkg create mynav --build-type ament_cmake --dependencies rclcpp --license Apache-2.0
