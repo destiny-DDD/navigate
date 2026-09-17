@@ -23,7 +23,7 @@ def generate_launch_description():  # 定义生成整个 launch 描述的函数�
 
     vid = LaunchConfiguration("vid")  # 读取串口设备的 USB 厂商 ID 启动参数。
     pid = LaunchConfiguration("pid")  # 读取串口设备的 USB 产品 ID 启动参数。
-    frame_id = LaunchConfiguration("frame_id")  # 读取点云消息的参考坐标系启动参数。
+    frame_id = LaunchConfiguration("frame_id")  #  读取点云消息的参考坐标系启动参数。
     publish_freq = LaunchConfiguration("publish_freq")  # 读取点云发布频率启动参数。
 
     declare_vid = DeclareLaunchArgument(  # 声明串口厂商 ID 的启动参数。
@@ -82,8 +82,12 @@ def generate_launch_description():  # 定义生成整个 launch 描述的函数�
         output="screen",  # 将节点日志输出到当前终端。
         parameters=[  # 开始设置节点参数。
             {  # 使用字典传入多个参数。
-                "vid": vid,  # 传给节点内部 declare_parameter("vid", ...) 的串口厂商 ID。
-                "pid": pid,  # 传给节点内部 declare_parameter("pid", ...) 的串口产品 ID。
+                # 必须用 ParameterValue 显式声明成字符串。直接写 vid / pid 的话，
+                # launch_ros 会把 "7523" 这种长得像数字的值转成整数，而节点里
+                # declare_parameter<std::string> 声明的是字符串，类型对不上会直接
+                # 抛 InvalidParameterTypeException 让节点 abort。
+                "vid": ParameterValue(vid, value_type=str),  # 串口厂商 ID，保持字符串类型。
+                "pid": ParameterValue(pid, value_type=str),  # 串口产品 ID，保持字符串类型。
             }  # 结束节点参数字典。
         ],  # 结束参数列表。
     )  # 结束底盘控制节点定义。
