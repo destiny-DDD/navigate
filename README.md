@@ -1,5 +1,5 @@
 ```
-ros2 pkg create mynav --build-type ament_cmake --dependencies rclcpp --license Apache-2.0
+ros2 pkg create --build-type ament_cmake --dependencies rclcpp --license Apache-2.0 
 
 git clone https://github.com/Livox-SDK/livox_ros_driver2.git ws_livox/src/livox_ros_driver2
 

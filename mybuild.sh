@@ -1,0 +1,1 @@
+colcon build --packages-skip livox_ros_driver2 odin_ros_driver
