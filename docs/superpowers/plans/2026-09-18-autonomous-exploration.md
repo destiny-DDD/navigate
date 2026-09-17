@@ -17,7 +17,9 @@
 - ROS 2 Jazzy，工作区根目录 `/home/shi/nav`，构建用 `colcon build`。
 - **禁止出现 `base_footprint`**。URDF 中不存在该 frame；机器人底盘坐标系一律用 `base_link`。
 - **里程计话题一律用 `/odin1/odometry`**，绝不写 `/odom`。odin 不发布 `/odom`；`/odom` 是被 `collision_monitor` 输出占用的名字，混用会造成极难排查的反馈环。
-- **禁止启动 AMCL 与 `map_server`**。AMCL 的 `tf_broadcast` 默认为 true，会与 `slam_toolbox` 争夺 `map`→`odom` 发布权。因此只用 `nav2_bringup/launch/navigation_launch.py`，不用 `bringup_launch.py`（后者会 include 含 amcl 的 `localization_launch.py`）。
+- **禁止启动 AMCL 与 `map_server`**。AMCL 的 `tf_broadcast` 默认为 true，会与 `slam_toolbox` 争夺 `map`→`odom` 发布权。因此只用 `nav2_bringup/launch/navigation_launch.py`，不用 `bringup_launch.py`。
+  - 注意 `bringup_launch.py` **并非没有 slam**：它按真值表二选一 —— `slam and use_localization` → `slam_launch.py`（:156-160），`not slam and use_localization` → `localization_launch.py`（:169-173），而 `slam` 默认 `False`（:95-96）。
+  - 不用它的真实原因是另外两条：(1) `slam_launch.py:114-140` 会把 `params_file` 整份转交给 slam_toolbox，要求 slam 参数并入 `nav2_params.yaml`，而我们两者是独立文件；(2) `slam_launch.py:44` 用的是 `online_sync`，我们主动选了 `online_async`。
 - 底盘为**四轮麦克纳姆轮**（URDF `wheel_1..4`，位于 `(±0.11, ±0.1605, 0.0762)`），全向。motion_model 一律 `Omni`。
 - 真机运行，**`use_sim_time` 一律显式设 `false`**。真机无 `/clock`，保持 true 会让节点静默空转。
 - `explore_lite` 的参数文件根键必须是 `explore_node:`，且 launch 中 `Node(name="explore_node")`，两者必须一致，否则参数静默不生效。
@@ -46,7 +48,7 @@
 - Consumes: 无（首个任务）
 - Produces: 包名 `myexplore`，其 share 目录下的 `launch/` 与 `config/` 供后续所有任务放置文件。后续任务一律通过 `get_package_share_directory("myexplore")` 定位。
 
-- [ ] **Step 1: 屏蔽 map_merge 包**
+- [x] **Step 1: 屏蔽 map_merge 包**
 
 `multirobot_map_merge` 是多机地图融合，单机不需要，且其 README 自述依赖 ROS1 的 `slam_gmapping`（从未移植到 ROS2）。它在编译期会下载测试地图并因本地代理 SSL 断开而产生失败噪音，耗时约 49 秒。
 
@@ -54,25 +56,31 @@
 touch src/m-explore-ros2/map_merge/COLCON_IGNORE
 ```
 
-- [ ] **Step 2: 把根目录的 myexplore 空壳挪进 src/**
+- [x] **Step 2: 清掉模板留下的空目录**
 
-仓库根目录 `/home/shi/nav/myexplore/` 已有一份 `ros2 pkg create` 生成的空壳（`src/` 与 `include/myexplore/` 都是空目录）。**colcon 只扫描 `src/` 下的包**，所以放在根目录的这份是不生效的。直接挪进去复用，不必重造：
+> 原步骤"把根目录 `myexplore/` 挪进 `src/`"已由用户于 2026-09-18 自行完成（`ros2 pkg create` 生成的空壳现已在 `src/myexplore/`），故此处只剩清理。
 
 ```bash
-mv myexplore src/myexplore
 # 纯配置包没有编译目标，用不上这两个空目录（留着会让后来者以为这里要写 C++）。
 rmdir src/myexplore/src src/myexplore/include/myexplore src/myexplore/include
 ```
 
-挪完确认：
+清理后确认：
 
 ```bash
-ls src/myexplore
+find src/myexplore | sort
 ```
 
-Expected: `CMakeLists.txt  LICENSE  package.xml`（`LICENSE` 保留，与 `src/mynav` 的做法一致）
+Expected:
+```
+src/myexplore
+src/myexplore/CMakeLists.txt
+src/myexplore/LICENSE
+src/myexplore/package.xml
+```
+（`LICENSE` 保留，与 `src/mynav` 的做法一致）
 
-- [ ] **Step 3: 覆盖 package.xml**
+- [x] **Step 3: 覆盖 package.xml**
 
 `mv` 过来的 `package.xml` 是模板生成的无用内容（`<description>TODO: Package description</description>`，且依赖只有 `rclcpp`）。整体替换为：
 
@@ -110,7 +118,7 @@ Expected: `CMakeLists.txt  LICENSE  package.xml`（`LICENSE` 保留，与 `src/m
 </package>
 ```
 
-- [ ] **Step 4: 覆盖 CMakeLists.txt**
+- [x] **Step 4: 覆盖 CMakeLists.txt**
 
 同样把模板生成的内容整体替换为：
 
@@ -139,7 +147,7 @@ endif()
 ament_package()
 ```
 
-- [ ] **Step 5: 建空的 launch/ 与 config/ 目录**
+- [x] **Step 5: 建空的 launch/ 与 config/ 目录**
 
 `install(DIRECTORY ...)` 在目录不存在时会直接报错，所以先占位。
 
@@ -148,7 +156,7 @@ mkdir -p src/myexplore/launch src/myexplore/config
 touch src/myexplore/launch/.gitkeep src/myexplore/config/.gitkeep
 ```
 
-- [ ] **Step 6: 构建并验证**
+- [x] **Step 6: 构建并验证**
 
 ```bash
 colcon build --packages-select myexplore
@@ -169,7 +177,7 @@ colcon list | grep -c map_merge
 
 Expected: `0`（屏蔽生效；此前 `multirobot_map_merge` 会出现在列表中）
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add src/myexplore src/m-explore-ros2/map_merge/COLCON_IGNORE
@@ -191,7 +199,7 @@ git commit -m "feat(myexplore): 新建探索包骨架并屏蔽 map_merge"
 
 **背景（务必先读）**：现有 `mycontrol_launch.py` 设 `{"xfer_format": 1}`。`src/livox_ros_driver2/src/lddc.h:42-47` 定义 `kPointCloud2Msg = 0, kLivoxCustomMsg = 1`，即 **1 发的是 `livox_ros_driver2/msg/CustomMsg`**。`pointcloud_to_laserscan` 只接受 `sensor_msgs/msg/PointCloud2`，不改这一项整条链路直接断。
 
-- [ ] **Step 1: 修正 Livox 输出格式**
+- [x] **Step 1: 修正 Livox 输出格式**
 
 在 `src/mycontrol/launch/mycontrol_launch.py` 中，把 livox 节点参数里的 `xfer_format` 改掉：
 
@@ -207,7 +215,7 @@ git commit -m "feat(myexplore): 新建探索包骨架并屏蔽 map_merge"
             {"xfer_format": 0},
 ```
 
-- [ ] **Step 2: 写 scan.yaml**
+- [x] **Step 2: 写 scan.yaml**
 
 创建 `src/myexplore/config/scan.yaml`：
 
@@ -233,7 +241,7 @@ pointcloud_to_laserscan:
 
 上表全部参数名已实测核对过。唯一会自动存在但无需填写的是 `use_sim_time`（由 `rclcpp::Node` 自动声明）。
 
-- [ ] **Step 3: 写 scan.launch.py**
+- [x] **Step 3: 写 scan.launch.py**
 
 创建 `src/myexplore/launch/scan.launch.py`：
 
@@ -258,7 +266,9 @@ def generate_launch_description():
         output="screen",
         parameters=[params_file, {"use_sim_time": False}],
         remappings=[
-            # MID360 在 multi_topic=0 且 xfer_format=0 时发布到 /livox/lidar。
+            # 话题名只由 multi_topic 决定：0 → 固定名 "livox/lidar"；1 → "livox/lidar_<ip>"。
+            # 相对名 + 节点在根命名空间，故实际为 /livox/lidar。见 lddc.cpp:644-668。
+            # xfer_format 不影响话题名，它只决定消息类型（0=PointCloud2，1=CustomMsg）。
             ("cloud_in", "/livox/lidar"),
             ("scan", "/scan"),
         ],
@@ -269,7 +279,7 @@ def generate_launch_description():
 
 `use_sim_time` 显式写 `False`（`rclcpp::Node` 自动声明该参数，可直接传）。真机无 `/clock`，全局约束要求所有节点显式设 false。
 
-- [ ] **Step 4: 构建并做语法检查**
+- [x] **Step 4: 构建并做语法检查**
 
 ```bash
 python3 -m py_compile src/myexplore/launch/scan.launch.py && echo "launch 语法 OK"
@@ -398,7 +408,7 @@ git commit -m "feat(myexplore): MID360 点云转 2D 扫描，Livox 改发 PointC
 - Consumes: `/scan`（Task 2）、`odom`→`imu` TF 与 `/odin1/odometry`（odin，已就绪）
 - Produces: `/map`（`nav_msgs/msg/OccupancyGrid`）、`map`→`odom` TF。Task 4/5 的 nav2 costmap 与 Task 6 的 explore_lite 都消费这两个。
 
-- [ ] **Step 1: 写 slam_toolbox.yaml**
+- [x] **Step 1: 写 slam_toolbox.yaml**
 
 以 `/opt/ros/jazzy/share/slam_toolbox/config/mapper_params_online_async.yaml` 为基准，**只改 `base_frame` 一项**。
 
@@ -423,7 +433,7 @@ cp /opt/ros/jazzy/share/slam_toolbox/config/mapper_params_online_async.yaml \
 
 其余与本期相关的默认值保持不动，确认它们存在即可：`mode: mapping`、`do_loop_closing: true`、`scan_topic: /scan`、`use_scan_matching: true`、`resolution: 0.05`、`transform_publish_period: 0.02`、`max_laser_range: 20.0`。
 
-- [ ] **Step 2: 写 slam.launch.py**
+- [x] **Step 2: 写 slam.launch.py**
 
 创建 `src/myexplore/launch/slam.launch.py`：
 
@@ -478,7 +488,7 @@ def generate_launch_description():
 
 `use_sim_time` 必须显式传 `false`：上游 `online_async_launch.py:32` 的默认值是 `'true'`。
 
-- [ ] **Step 3: 构建并做语法检查**
+- [x] **Step 3: 构建并做语法检查**
 
 ```bash
 python3 -m py_compile src/myexplore/launch/slam.launch.py && echo "launch 语法 OK"
@@ -566,13 +576,13 @@ git commit -m "feat(myexplore): 接入 slam_toolbox 在线异步建图"
 - Consumes: `/scan`（Task 2）、`/map` 与 `map`→`odom` TF（Task 3）、`/odin1/odometry`（odin）
 - Produces: nav2 各生命周期节点、`NavigateToPose` action server（Task 6 的 explore_lite 消费）、话题 `/cmd_vel_nav` → `/cmd_vel_smoothed` → `/cmd_vel`（Task 5 的 collision_monitor 与 Task 6 后续链路消费）
 
-- [ ] **Step 1: 迁移参数文件**
+- [x] **Step 1: 迁移参数文件**
 
 ```bash
 cp src/mynav/config/nav2_params.yaml src/myexplore/config/nav2_params.yaml
 ```
 
-- [ ] **Step 2: 写自动断言脚本**
+- [x] **Step 2: 写自动断言脚本**
 
 这是本任务的可执行测试：它把"哪些值必须是修正后的"变成一条命令可验证的断言。
 
@@ -696,7 +706,7 @@ print(f"\n{total - failed}/{total} 通过")
 sys.exit(1 if failed else 0)
 ```
 
-- [ ] **Step 3: 运行断言脚本，确认它失败**
+- [x] **Step 3: 运行断言脚本，确认它失败**
 
 ```bash
 python3 tools/check_nav2_params.py
@@ -710,7 +720,7 @@ echo "退出码: $?"
 
 Expected: `退出码: 1`
 
-- [ ] **Step 4: 修正 bt_navigator 的里程计话题**
+- [x] **Step 4: 修正 bt_navigator 的里程计话题**
 
 在 `src/myexplore/config/nav2_params.yaml` 中：
 
@@ -724,7 +734,7 @@ Expected: `退出码: 1`
     odom_topic: /odin1/odometry  # 里程计话题；odin 发的是 /odin1/odometry，不是 /odom。
 ```
 
-- [ ] **Step 5: 修正 controller_server 的横向速度阈值**
+- [x] **Step 5: 修正 controller_server 的横向速度阈值**
 
 ```yaml
     min_y_velocity_threshold: 0.5  # 忽略小于此值的横向速度，差速车通常不使用横移。
@@ -736,7 +746,7 @@ Expected: `退出码: 1`
     min_y_velocity_threshold: 0.1  # 忽略小于此值的横向速度；原值 0.5 是差速车设置，会滤掉麦轮横移。
 ```
 
-- [ ] **Step 6: 修正 MPPI 运动模型与碰撞检查**
+- [x] **Step 6: 修正 MPPI 运动模型与碰撞检查**
 
 ```yaml
       motion_model: "DiffDrive"  # 使用差速驱动运动模型。
@@ -758,7 +768,7 @@ Expected: `退出码: 1`
         consider_footprint: true  # 按真实轮廓检查碰撞；本车 0.37×0.47 m，按中心点检查会漏检。
 ```
 
-- [ ] **Step 7: 删除 local_costmap 的死配置**
+- [x] **Step 7: 删除 local_costmap 的死配置**
 
 `local_costmap` 的 `static_layer` 段存在但不在 `plugins` 列表中，是无效配置，且 `StaticLayer` 与 `rolling_window: true` 组合本身也不成立（滚动窗口没有固定静态地图）。删除整段：
 
@@ -768,7 +778,7 @@ Expected: `退出码: 1`
         map_subscribe_transient_local: True  # 使用瞬态本地订阅，确保能收到已发布的地图。
 ```
 
-- [ ] **Step 8: 修正机器人轮廓**
+- [x] **Step 8: 修正机器人轮廓**
 
 实测（由 `src/mysystem/meshes/*.stl` 包围盒叠加关节 origin 得出）：机体整体 x ∈ [-0.1862, +0.1862]，y ∈ [-0.2367, +0.2367]，最远角点距原点 0.301 m。原 `robot_radius: 0.22` **偏小 27%**，会导致碰撞检查漏检。
 
@@ -788,7 +798,7 @@ Expected: `退出码: 1`
 
 `global_costmap` 中该行的注释文案相同，同样处理。
 
-- [ ] **Step 9: 修正 velocity_smoother 的横向分量与里程计话题**
+- [x] **Step 9: 修正 velocity_smoother 的横向分量与里程计话题**
 
 ```yaml
     max_velocity: [0.5, 0.0, 2.0]  # 最大速度 [前进、横向、旋转]，单位分别为米/秒、米/秒、弧度/秒。
@@ -808,7 +818,7 @@ Expected: `退出码: 1`
     odom_topic: "/odin1/odometry"  # 用于速度反馈的里程计话题；odin 不发 /odom。
 ```
 
-- [ ] **Step 10: 修正 collision_monitor 与 amcl 的坐标系**
+- [x] **Step 10: 修正 collision_monitor 与 amcl 的坐标系**
 
 ```yaml
     base_frame_id: "base_footprint"  # 碰撞监控使用的机器人底盘坐标系。
@@ -840,7 +850,7 @@ Expected: `退出码: 1`
     base_frame_id: "base_link"  # 机器人底盘坐标系。
 ```
 
-- [ ] **Step 11: 在 amcl 段加警示注释**
+- [x] **Step 11: 在 amcl 段加警示注释**
 
 `amcl` 段在本配置中是死配置（`navigation_launch.py` 不启动 AMCL），但留着容易被后来者误当成"已配置好定位"。在 `amcl:` 段标题上方插入：
 
@@ -851,7 +861,7 @@ Expected: `退出码: 1`
 amcl:  # AMCL 粒子滤波定位节点。
 ```
 
-- [ ] **Step 12: 运行断言脚本，确认全部通过**
+- [x] **Step 12: 运行断言脚本，确认全部通过**
 
 ```bash
 python3 tools/check_nav2_params.py
@@ -861,7 +871,7 @@ Expected: 全部 `PASS`，末行 `25/25 通过`，退出码 0。
 
 若有 `FAIL`，按提示回到对应 Step 修正。
 
-- [ ] **Step 13: 写 navigation.launch.py**
+- [x] **Step 13: 写 navigation.launch.py**
 
 创建 `src/myexplore/launch/navigation.launch.py`：
 
@@ -896,9 +906,19 @@ def generate_launch_description():
     )
 
     # 关键：用 navigation_launch.py 而**不是** bringup_launch.py。
-    # bringup_launch.py 是包装层，slam:=False 时它会 include localization_launch.py，
-    # 而后者包含 amcl 与 map_server —— AMCL 会与 slam_toolbox 争夺 map->odom 发布权。
-    # navigation_launch.py 只含导航栈本体，不含 amcl / map_server，正合需要。
+    #
+    # bringup_launch.py 并不是"没有 slam"——它两条路都有，靠一组真值表二选一：
+    #   slam and use_localization       → include slam_launch.py       (bringup_launch.py:156-160)
+    #   not slam and use_localization   → include localization_launch.py (:169-173)
+    # 其中 slam 默认 False（:95-96），所以不显式传参时走的是 AMCL 那条路。
+    #
+    # 不用它的实际原因有两条，都与"有没有 slam"无关：
+    #   1) slam_launch.py:114-140 会把你的 params_file 整份转交给 slam_toolbox，
+    #      要求把 slam 参数并进 nav2_params.yaml；我们两者是独立文件。
+    #   2) slam_launch.py:44 用的是 online_sync（同步），我们主动选了 online_async。
+    #
+    # 而 navigation_launch.py 只含导航栈本体，不含 amcl / map_server —— 正好让我们
+    # 用自己那份 slam.launch.py 顶上那个二选一的位置，slam 与 nav2 彻底解耦。
     # 附带好处：collision_monitor 与 velocity_smoother 已由它拉起，无需另行启动。
     nav2_navigation = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
@@ -919,7 +939,7 @@ def generate_launch_description():
     ])
 ```
 
-- [ ] **Step 14: 构建并检查启动参数**
+- [x] **Step 14: 构建并检查启动参数**
 
 ```bash
 python3 -m py_compile src/myexplore/launch/navigation.launch.py && echo "launch 语法 OK"
@@ -1000,7 +1020,7 @@ git commit -m "feat(myexplore): 迁移 nav2 参数并修正为麦轮全向构型
 
 **为什么这层不是可选项**：需求是"一直探索"，机器人在无人看管下自主移动。`collision_monitor` 直接拦在 `cmd_vel_smoothed` 与最终 `cmd_vel` 之间，是独立于探索逻辑的最后一关——即使 `explore_lite` 或 nav2 行为异常，它也会拦下。
 
-- [ ] **Step 1: 写自动断言脚本的扩充项**
+- [x] **Step 1: 写自动断言脚本的扩充项**
 
 在 `tools/check_nav2_params.py` 的 `PATH_CHECKS` 列表末尾（`global_costmap.plugins 保留 static_layer` 那组之后、`]` 之前）插入：
 
@@ -1014,7 +1034,7 @@ git commit -m "feat(myexplore): 迁移 nav2 参数并修正为麦轮全向构型
 
 `dig()` 对缺失的中间键返回 `None`，所以 `StopZone` 尚未定义时这几项会正常报 `FAIL` 而不是崩溃。
 
-- [ ] **Step 2: 运行断言脚本，确认新增项失败**
+- [x] **Step 2: 运行断言脚本，确认新增项失败**
 
 ```bash
 python3 tools/check_nav2_params.py
@@ -1022,7 +1042,7 @@ python3 tools/check_nav2_params.py
 
 Expected: 前 25 项全 `PASS`，新增的 4 项全 `FAIL`，末行 `25/29 通过`。
 
-- [ ] **Step 3: 扩充 polygons 列表**
+- [x] **Step 3: 扩充 polygons 列表**
 
 在 `src/myexplore/config/nav2_params.yaml` 中：
 
@@ -1036,7 +1056,7 @@ Expected: 前 25 项全 `PASS`，新增的 4 项全 `FAIL`，末行 `25/29 通�
     polygons: ["StopZone", "SlowZone", "FootprintApproach"]  # 启用的碰撞区域名称。
 ```
 
-- [ ] **Step 4: 定义急停区与减速区**
+- [x] **Step 4: 定义急停区与减速区**
 
 紧接 `polygons:` 那一行之后、原有 `FootprintApproach:` 段之前，插入：
 
@@ -1059,7 +1079,7 @@ Expected: 前 25 项全 `PASS`，新增的 4 项全 `FAIL`，末行 `25/29 通�
       enabled: True  # 是否启用该碰撞区域。
 ```
 
-- [ ] **Step 5: 放宽 stop_pub_timeout**
+- [x] **Step 5: 放宽 stop_pub_timeout**
 
 ```yaml
     stop_pub_timeout: 2.0  # 停止指令持续发布的时间，单位秒。
@@ -1071,19 +1091,58 @@ Expected: 前 25 项全 `PASS`，新增的 4 项全 `FAIL`，末行 `25/29 通�
     stop_pub_timeout: 5.0  # 停止指令持续发布的时间，单位秒；探索场景下放宽，避免障碍移开后过早放行。
 ```
 
-- [ ] **Step 6: 运行断言脚本，确认全部通过**
+- [x] **Step 6: 清除 scan 源上的死参数**
+
+> **执行时新增（2026-09-18，计划外）**：不属于原计划，实测发现问题后补入。
+
+`collision_monitor` 的 `scan:` 段带 `min_height: 0.15` / `max_height: 2.0`，这对参数**不会被读取**。证据：
+
+- `nav2_collision_monitor/scan.hpp` 的 `Scan` 类只有 `data_sub_`、`data_` 两个成员，无高度成员；`source.hpp` 基类与 `range.hpp` 同样没有。只有 `pointcloud.hpp:97` 有 `double min_height_, max_height_;`，即这对参数专属 `PointCloud` 类观测源。
+- 实测：以本参数文件 `configure` 后 `ros2 param list` 只见 `scan.type` / `scan.topic` / `scan.enabled` / `scan.source_timeout`，无高度项。
+
+**这段死配置比一般的死配置更危险**：它与 `src/myexplore/config/scan.yaml` 中真正生效的 `min_height` / `max_height` 同名。将来调扫描高度窗口的人若改到这里，会毫无效果，并误以为碰撞侧的高度过滤已经配过 —— 而 Task 2 Step 7 的分支 B（雷达斜装）恰恰是个需要调高度窗口的场景。
+
+删除这两行，替换为说明注释：
+
+```yaml
+      min_height: 0.15  # 参与碰撞检测的最低激光高度，单位米。
+      max_height: 2.0  # 参与碰撞检测的最高激光高度，单位米。
+      enabled: True  # 是否启用该激光观测源。
+```
+
+改为：
+
+```yaml
+      # 此处刻意不设 min_height / max_height。这对参数只属于 PointCloud 类观测源
+      # （见 nav2_collision_monitor/pointcloud.hpp 的 min_height_/max_height_ 成员），
+      # scan 源的 Scan 类并无这两个成员。实测：节点 configure 后
+      # `ros2 param list` 只见 scan.type / scan.topic / scan.enabled / scan.source_timeout。
+      # 留着它们会有害 —— 真正决定扫描高度窗口的是 myexplore/config/scan.yaml 里的
+      # 同名参数，在此处改高度不会有任何效果，反而会让人以为配过碰撞侧的高度过滤。
+      enabled: True  # 是否启用该激光观测源。
+```
+
+同时在 `tools/check_nav2_params.py` 的 `PATH_CHECKS` 末尾再追加两条，把"已移除"变成可断言的事实：
+
+```python
+    # --- scan 源上的死参数已清除（Scan 类不读高度，见 pointcloud.hpp 对比）---
+    ("scan 源已移除死参数 min_height", CM + ("scan", "min_height"), None),
+    ("scan 源已移除死参数 max_height", CM + ("scan", "max_height"), None),
+```
+
+- [x] **Step 7: 运行断言脚本，确认全部通过**
 
 ```bash
 python3 tools/check_nav2_params.py
 ```
 
-Expected: 全部 `PASS`，末行 `29/29 通过`（25 项 + 4 项）。
+Expected: 全部 `PASS`，末行 `31/31 通过`（25 项 + 4 项 + 2 项）。
 
 若 `collision_monitor.polygons` 或 `StopZone.action_type` 仍为 `FAIL`，说明 Step 4 的 YAML 缩进不对 —— `StopZone` / `SlowZone` 必须与 `FootprintApproach` 同级（4 个空格），其子键为 6 个空格。
 
 参数名对照（已核对 `nav2_collision_monitor` 的 `polygon.hpp` 与已安装的 `libcollision_monitor_core.so`）：多边形顶点用 `points`，减速比例用 `slowdown_ratio`（**不是** `slow_down_ratio`），激活条件用 `min_points`（旧名 `max_points` 已废弃）。
 
-- [ ] **Step 7: 现场验证急停生效**
+- [ ] **Step 8: 现场验证急停生效**
 
 重启 nav2 使新配置生效：
 
@@ -1120,7 +1179,7 @@ Expected: 两个话题都仍在发布，但 `/cmd_vel` 内容为零。若 `/cmd_
 
 移开障碍物，确认状态回到 `NORMAL` 且车恢复移动。
 
-- [ ] **Step 8: Commit**
+- [ ] **Step 9: Commit**
 
 ```bash
 git add src/myexplore/config/nav2_params.yaml tools/check_nav2_params.py
@@ -1140,7 +1199,7 @@ git commit -m "feat(myexplore): collision_monitor 增加急停区与减速区"
 - Consumes: `/map`（Task 3）、`/global_costmap/costmap` 与 `NavigateToPose` action server（Task 4）
 - Produces: 节点 `explore_node`；订阅话题 `/explore/resume`（`std_msgs/msg/Bool`），发布 `/explore/status`（`explore_lite_msgs/msg/ExploreStatus`）与 `/explore/frontiers`（`visualization_msgs/msg/MarkerArray`）。`explore_bringup.launch.py` 成为 Task 7 中 `mystart.sh` 的调用入口。
 
-- [ ] **Step 1: 写 explore_params.yaml**
+- [x] **Step 1: 写 explore_params.yaml**
 
 创建 `src/myexplore/config/explore_params.yaml`：
 
@@ -1166,7 +1225,7 @@ explore_node:
     use_sim_time: false                     # 真机无 /clock；上游 launch 默认 true，必须显式设 false。
 ```
 
-- [ ] **Step 2: 写 explore.launch.py**
+- [x] **Step 2: 写 explore.launch.py**
 
 创建 `src/myexplore/launch/explore.launch.py`：
 
@@ -1197,7 +1256,7 @@ def generate_launch_description():
     return LaunchDescription([explore_node])
 ```
 
-- [ ] **Step 3: 写 explore_bringup.launch.py**
+- [x] **Step 3: 写 explore_bringup.launch.py**
 
 创建 `src/myexplore/launch/explore_bringup.launch.py`：
 
@@ -1237,7 +1296,7 @@ def generate_launch_description():
     ])
 ```
 
-- [ ] **Step 4: 构建并做语法检查**
+- [x] **Step 4: 构建并做语法检查**
 
 ```bash
 for f in src/myexplore/launch/explore.launch.py src/myexplore/launch/explore_bringup.launch.py; do
@@ -1273,16 +1332,17 @@ ros2 launch myexplore explore_bringup.launch.py explore:=true
 
 Expected: 日志出现 `[explore_node]` 前缀的行。
 
-**若中文日志乱码或缺参数**，用下面的命令核对参数是否真的被读到：
+**核对参数是否真的被读到** —— 必须用 `costmap_topic`，不能用 `use_sim_time`：
 
 ```bash
-ros2 param get /explore_node use_sim_time
 ros2 param get /explore_node costmap_topic
 ```
 
-Expected: `Boolean value is: False` 与 `String value is: /global_costmap/costmap`。
+Expected: `String value is: /global_costmap/costmap`。
 
-若 `use_sim_time` 返回 `True`，说明 YAML 根键与节点名不匹配，检查 Step 1 的 `explore_node:` 与 Step 2 的 `name="explore_node"`。
+> **为什么这两条命令不等价**（执行时实测更正）：`use_sim_time` 由 `rclcpp::Node` 自动声明，默认值就是 `false`。因此 YAML 根键写错、参数完全没被加载时，它**照样**返回 `False` —— 拿它判断根键是否匹配是无效检查。`costmap_topic` 才有判别力：代码默认值是 `"costmap"`（`costmap_client.cpp:58`），只有 YAML 真正加载才会变成 `/global_costmap/costmap`。
+
+**读不到 `return_to_init` / `min_frontier_size` / `planner_frequency` 属正常**，不是配置问题：`Explore` 的成员初始化列表里先构造 `costmap_client_`，其构造函数会阻塞等待代价地图话题；在 nav2 起来之前，构造函数体（`explore.cpp:65-72`）的 `declare_parameter` 尚未执行。上述四个取自 `CostmapClient` 构造函数的参数与自动声明的 `use_sim_time` 则随时可读。
 
 - [ ] **Step 6: 验证探索启动与状态上报**
 
@@ -1290,7 +1350,7 @@ Expected: `Boolean value is: False` 与 `String value is: /global_costmap/costma
 ros2 topic echo /explore/status
 ```
 
-Expected: 持续输出，`status` 字段为 `exploration_started`（枚举值 1）。
+Expected: 持续输出，`status` 字段为字符串 `exploration_started`。（`ExploreStatus.msg` 里 `status` 是 `string`，值为 `exploration_started` / `exploration_in_progress` / `exploration_paused` / `exploration_complete` / `returning_to_origin` / `returned_to_origin` 这六个字符串常量，**没有数字枚举值**。）
 
 ```bash
 ros2 topic echo /explore/frontiers --field markers --once | head -20
@@ -1310,7 +1370,7 @@ Expected: 机器人周围的 frontier 候选点被标出，其中一个被选中
 ros2 topic pub --once /explore/resume std_msgs/msg/Bool "{data: false}"
 ```
 
-Expected: 车立即停下；`ros2 topic echo /explore/status` 变为 `exploration_paused`（枚举值 3）。
+Expected: 车立即停下；`ros2 topic echo /explore/status` 变为字符串 `exploration_paused`。
 
 ```bash
 ros2 topic pub --once /explore/resume std_msgs/msg/Bool "{data: true}"

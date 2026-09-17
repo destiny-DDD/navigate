@@ -63,7 +63,9 @@ def generate_launch_description():  # 定义生成整个 launch 描述的函数�
         name="livox_lidar_publisher",  # 指定节点在 ROS 图中的名字。
         output="screen",  # 将节点日志输出到当前终端。
         parameters=[  # 开始设置节点参数。
-            {"xfer_format": 1},  # 1 表示使用 Livox 自定义点云格式，0 表示标准 PointCloud2。
+            # 必须是 0（kPointCloud2Msg）。1 是 livox_ros_driver2/msg/CustomMsg，
+            # 下游 pointcloud_to_laserscan 只吃 sensor_msgs/PointCloud2，填 1 会直接断链。
+            {"xfer_format": 0},
             {"multi_topic": 0},  # 0 表示所有雷达共用同一个话题。
             {"data_src": 0},  # 0 表示数据来自真实雷达，其他值无意义。
             {"publish_freq": ParameterValue(publish_freq, value_type=float)},  # 点云发布频率，必须转成浮点类型。

@@ -1,0 +1,15 @@
+pointcloud_to_laserscan:
+  ros__parameters:
+    target_frame: base_link        # 先变换到机体坐标系再做高度切片，使高度窗口有明确物理含义。
+    transform_tolerance: 0.01      # 点云变换到 target_frame 允许的 TF 时间误差，单位秒。
+    min_height: -0.15              # 高度窗口下界（相对 base_link），起始值供调参，非最终值。
+    max_height: 0.25               # 高度窗口上界（相对 base_link），起始值供调参，非最终值。
+    angle_min: -3.14159265         # 扫描起始角，-π 表示全向覆盖。
+    angle_max: 3.14159265          # 扫描结束角，π 表示全向覆盖。
+    angle_increment: 0.0087        # 相邻扫描束的角度间隔，约 0.5 度，360 度共约 720 束。
+    scan_time: 0.1                 # 对应 MID360 的 10 Hz 发布频率，单位秒。
+    range_min: 0.2                 # 小于此距离的回波丢弃，避免机体自身被标为障碍，单位米。
+    range_max: 20.0                # 最大有效距离，与 slam_toolbox 的 max_laser_range 对齐，单位米。
+    use_inf: true                  # 无回波方向输出 inf 而非直接丢弃，让建图知道该方向是空的。
+    inf_epsilon: 1.0               # 判定为无穷远的容差，单位米。
+    queue_size: 30                 # 订阅队列长度，按 10 Hz 计约可缓冲 3 秒。

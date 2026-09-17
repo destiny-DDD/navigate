@@ -3,13 +3,22 @@
 <package format="3">
   <name>myexplore</name>
   <version>0.0.0</version>
-  <description>TODO: Package description</description>
+  <description>自主探索建图：MID360 点云转 2D 扫描，slam_toolbox 建图，nav2 导航，explore_lite 决策。</description>
   <maintainer email="shifengddd@gmail.com">shi</maintainer>
   <license>Apache-2.0</license>
 
   <buildtool_depend>ament_cmake</buildtool_depend>
 
-  <depend>rclcpp</depend>
+  <!-- 本包只安装 launch 与 config，无编译目标，因此依赖全部是 exec_depend。 -->
+  <exec_depend>slam_toolbox</exec_depend>
+  <exec_depend>nav2_bringup</exec_depend>
+  <exec_depend>nav2_mppi_controller</exec_depend>
+  <exec_depend>nav2_collision_monitor</exec_depend>
+  <exec_depend>nav2_map_server</exec_depend>
+  <exec_depend>pointcloud_to_laserscan</exec_depend>
+  <exec_depend>explore_lite</exec_depend>
+  <exec_depend>livox_ros_driver2</exec_depend>
+  <exec_depend>odin_ros_driver</exec_depend>
 
   <test_depend>ament_lint_auto</test_depend>
   <test_depend>ament_lint_common</test_depend>

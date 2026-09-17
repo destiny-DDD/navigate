@@ -1,22 +1,18 @@
 cmake_minimum_required(VERSION 3.8)
 project(myexplore)
 
-if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-  add_compile_options(-Wall -Wextra -Wpedantic)
-endif()
-
-# find dependencies
 find_package(ament_cmake REQUIRED)
-find_package(rclcpp REQUIRED)
+
+# 本包无编译目标，只把 launch 与 config 装进 share/，供 ros2 launch 读取。
+install(
+  DIRECTORY launch config
+  DESTINATION share/${PROJECT_NAME}
+)
 
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
-  # the following line skips the linter which checks for copyrights
-  # comment the line when a copyright and license is added to all source files
+  # 跳过版权检查与 cpplint：本包是纯配置包，且不在 git 仓库的常规位置。
   set(ament_cmake_copyright_FOUND TRUE)
-  # the following line skips cpplint (only works in a git repo)
-  # comment the line when this package is in a git repo and when
-  # a copyright and license is added to all source files
   set(ament_cmake_cpplint_FOUND TRUE)
   ament_lint_auto_find_test_dependencies()
 endif()
