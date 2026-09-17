@@ -5,3 +5,6 @@ log/
 nav.svproj
 导航小车V1.STEP
 nav.zip
+__pycache__/
+*.pyc
+.superpowers/

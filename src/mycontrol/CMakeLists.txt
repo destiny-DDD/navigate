@@ -5,9 +5,28 @@ if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   add_compile_options(-Wall -Wextra -Wpedantic)
 endif()
 
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
 # find dependencies
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
+find_package(geometry_msgs REQUIRED)
+find_package(libxr REQUIRED)
+
+add_executable(mycontrol src/main.cpp)
+target_include_directories(mycontrol PRIVATE include/mycontrol)
+target_link_libraries(mycontrol
+  rclcpp::rclcpp
+  ${geometry_msgs_TARGETS}
+  libxr::xr
+)
+
+install(TARGETS mycontrol DESTINATION lib/${PROJECT_NAME})
+
+install(
+  DIRECTORY launch
+  DESTINATION share/${PROJECT_NAME}
+)
 
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
