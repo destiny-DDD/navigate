@@ -8,3 +8,4 @@ nav.zip
 __pycache__/
 *.pyc
 .superpowers/
+.cache
