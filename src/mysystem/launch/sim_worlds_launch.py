@@ -6,11 +6,13 @@ from launch.actions import IncludeLaunchDescription  # 导入用于包含其他 
 from launch.launch_description_sources import (
     PythonLaunchDescriptionSource,  # 导入 Python launch 文件的来源描述对象。
 )
+from launch_ros.actions import Node  # 导入用于启动 ROS 2 节点的对象。
 
 
 def generate_launch_description():  # 定义生成整个 launch 描述的函数。
     package_share = get_package_share_directory('mysystem')  # 获取 mysystem 软件包的 share 目录。
     world_file = os.path.join(package_share, 'worlds', 'world.world')  # 拼出 world 文件的完整路径。
+    robot_file = os.path.join(package_share, 'urdf', 'robot.urdf')  # 拼出机器人 URDF 文件的完整路径。
     ros_gz_sim_share = get_package_share_directory('ros_gz_sim')  # 获取 ros_gz_sim 软件包的 share 目录。
 
     gazebo = IncludeLaunchDescription(  # 创建加载 Gazebo Sim 的启动动作。
@@ -25,7 +27,21 @@ def generate_launch_description():  # 定义生成整个 launch 描述的函数�
         }.items(),  # 将字典转换为 launch 参数项。
     )  # 结束 Gazebo Sim 启动动作定义。
 
+    spawn_robot = Node(  # 创建将 URDF 机器人生成到 Gazebo Sim 的节点。
+        package='ros_gz_sim',  # 指定节点所属的软件包。
+        executable='create',  # 指定用于创建 Gazebo 实体的可执行程序。
+        arguments=[  # 设置机器人生成参数。
+            '-file', robot_file,  # 指定要加载的机器人 URDF 文件。
+            '-name', 'robot',  # 指定 Gazebo 中的实体名称。
+            '-x', '0',  # 设置机器人初始 X 坐标。
+            '-y', '0',  # 设置机器人初始 Y 坐标。
+            '-z', '0.2',  # 让机器人初始位置略高于地面。
+        ],  # 结束机器人生成参数列表。
+        output='screen',  # 将节点日志输出到当前终端。
+    )  # 结束机器人生成节点定义。
+
     ld = LaunchDescription()  # 创建一个空的 launch 描述对象。
     ld.add_action(gazebo)  # 将 Gazebo Sim 启动动作加入 launch 描述。
+    ld.add_action(spawn_robot)  # 将机器人生成节点加入 launch 描述。
 
     return ld  # 返回完整的 launch 描述，供 ROS 2 执行。
