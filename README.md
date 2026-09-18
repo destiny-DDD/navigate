@@ -5,3 +5,5 @@ git clone https://github.com/Livox-SDK/livox_ros_driver2.git ws_livox/src/livox_
 
 git clone https://github.com/manifoldsdk/odin_ros_driver.git catkin_ws/src/odin_ros_driver
 ```
+
+ros2 run rmw_zenoh_cpp rmw_zenohd

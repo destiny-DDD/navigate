@@ -1,1 +1,1 @@
-colcon build --packages-skip livox_ros_driver2 odin_ros_driver
+colcon build --symlink-install --cmake-args -DBUILD_SYSTEM=ROS2 -DDISTRO_ROS=jazzy
