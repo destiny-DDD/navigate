@@ -18,3 +18,18 @@
   ros_type_name: 'nav_msgs/msg/Odometry'
   gz_type_name: 'gz.msgs.Odometry'
   direction: GZ_TO_ROS
+
+# 将 Gazebo 中真实转动的车轮关节状态传给 ROS 2 的 robot_state_publisher。
+- ros_topic_name: '/joint_states'
+  gz_topic_name: '/world/test_office/model/robot/joint_state'
+  ros_type_name: 'sensor_msgs/msg/JointState'
+  gz_type_name: 'gz.msgs.Model'
+  direction: GZ_TO_ROS
+
+# 将 MID360 三维点云传给 ROS 2。
+- ros_topic_name: '/mid360/points'
+  gz_topic_name: '/model/robot/mid360/points/points'
+  ros_type_name: 'sensor_msgs/msg/PointCloud2'
+  gz_type_name: 'gz.msgs.PointCloudPacked'
+  frame_id: 'livox_frame'
+  direction: GZ_TO_ROS

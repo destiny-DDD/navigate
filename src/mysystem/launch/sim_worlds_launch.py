@@ -15,7 +15,6 @@ def generate_launch_description():  # 定义生成整个 launch 描述的函数�
     robot_file = os.path.join(package_share, 'urdf', 'robot.urdf')  # 拼出机器人 URDF 文件的完整路径。
     bridge_config = os.path.join(package_share, 'config', 'bridge.yaml')  # 拼出 Gazebo 桥接配置文件的完整路径。
     ros_gz_sim_share = get_package_share_directory('ros_gz_sim')  # 获取 ros_gz_sim 软件包的 share 目录。
-
     gazebo = IncludeLaunchDescription(  # 创建加载 Gazebo Sim 的启动动作。
         PythonLaunchDescriptionSource(  # 指定要包含的 Python launch 文件。
             os.path.join(
