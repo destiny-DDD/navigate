@@ -13,6 +13,7 @@ def generate_launch_description():  # 定义生成整个 launch 描述的函数�
     package_share = get_package_share_directory('mysystem')  # 获取 mysystem 软件包的 share 目录。
     world_file = os.path.join(package_share, 'worlds', 'world.world')  # 拼出 world 文件的完整路径。
     robot_file = os.path.join(package_share, 'urdf', 'robot.urdf')  # 拼出机器人 URDF 文件的完整路径。
+    bridge_config = os.path.join(package_share, 'config', 'bridge.yaml')  # 拼出 Gazebo 桥接配置文件的完整路径。
     ros_gz_sim_share = get_package_share_directory('ros_gz_sim')  # 获取 ros_gz_sim 软件包的 share 目录。
 
     gazebo = IncludeLaunchDescription(  # 创建加载 Gazebo Sim 的启动动作。
@@ -22,7 +23,7 @@ def generate_launch_description():  # 定义生成整个 launch 描述的函数�
             )  # 拼出 gz_sim.launch.py 的完整路径。
         ),  # 结束 launch 文件来源描述。
         launch_arguments={  # 将启动参数传递给 ros_gz_sim。
-            'gz_args': world_file,  # 指定 Gazebo 要加载的 world 文件。
+            'gz_args': f'-r {world_file}',  # 指定 Gazebo 要加载的 world 文件。
             'on_exit_shutdown': 'true',  # Gazebo 退出时关闭整个 launch 系统。
         }.items(),  # 将字典转换为 launch 参数项。
     )  # 结束 Gazebo Sim 启动动作定义。
@@ -40,8 +41,25 @@ def generate_launch_description():  # 定义生成整个 launch 描述的函数�
         output='screen',  # 将节点日志输出到当前终端。
     )  # 结束机器人生成节点定义。
 
+    bridge = Node(  # 创建 Gazebo 与 ROS 2 消息桥接节点。
+        package='ros_gz_bridge',  # 指定桥接节点所属的软件包。
+        executable='parameter_bridge',  # 指定通用消息桥接可执行程序。
+        parameters=[  # 设置桥接节点参数。
+            {'config_file': bridge_config},  # 从 YAML 文件读取需要桥接的话题。
+        ],  # 结束桥接节点参数列表。
+        output='screen',  # 将节点日志输出到当前终端。
+    )  # 结束消息桥接节点定义。
+
+    odom_to_tf = Node(  # 创建将里程计转换为 TF 的节点。
+        package='mysystem',  # 指定节点所属的软件包。
+        executable='odom_to_tf',  # 指定安装后的 C++ TF 广播节点。
+        output='screen',  # 将节点日志输出到当前终端。
+    )  # 结束里程计 TF 节点定义。
+
     ld = LaunchDescription()  # 创建一个空的 launch 描述对象。
     ld.add_action(gazebo)  # 将 Gazebo Sim 启动动作加入 launch 描述。
     ld.add_action(spawn_robot)  # 将机器人生成节点加入 launch 描述。
+    ld.add_action(bridge)  # 将 Gazebo 与 ROS 2 的消息桥接节点加入 launch 描述。
+    ld.add_action(odom_to_tf)  # 将里程计 TF 节点加入 launch 描述。
 
     return ld  # 返回完整的 launch 描述，供 ROS 2 执行。
