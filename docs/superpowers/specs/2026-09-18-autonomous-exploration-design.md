@@ -182,7 +182,7 @@ touch src/m-explore-ros2/map_merge/COLCON_IGNORE
 
 这是本设计中容易踩错的一处：`bringup_launch.py` 是个包装层，当 `slam:=False` 时它会 include `localization_launch.py`，而**后者包含 amcl 与 map_server**——AMCL 一旦启动就会与 slam_toolbox 争夺 `map`→`odom` 的发布权。而 `navigation_launch.py` 只含导航栈本体（controller / planner / bt_navigator / behaviors / smoother / velocity_smoother / collision_monitor），**不含 amcl 与 map_server**，正是我们需要的。
 
-附带好处：`collision_monitor` 与 `velocity_smoother` 已由该文件拉起，无需在 `myexplore` 中单独启动。
+附带好处：`collision_monitor` 与 `velocity_smoother` 已由该文件拉起，无需在 `mynav` 中单独启动。
 
 现有 `src/mynav/config/nav2_params.yaml` 需作如下改动。这些是麦轮全向构型的必要修正，其中前三条若漏改会导致横移能力完全失效：
 
@@ -231,7 +231,7 @@ touch src/m-explore-ros2/map_merge/COLCON_IGNORE
 | `gain_scale` | 1.0 | 保持 | 前沿尺寸奖励 |
 | `orientation_scale` | 0.0 | 保持 | 朝向惩罚默认关闭；麦轮可横移，开关皆可 |
 
-**启动方式**：不使用其自带的 `explore.launch.py`——该文件把参数文件写死为 `params.yaml`，且 `use_sim_time` 默认 `true`。改为在 `myexplore` 的 launch 中直接以 `Node` 起 `explore_lite` 的 `explore` 可执行文件。
+**启动方式**：不使用其自带的 `explore.launch.py`——该文件把参数文件写死为 `params.yaml`，且 `use_sim_time` 默认 `true`。改为在 `mynav` 的 launch 中直接以 `Node` 起 `explore_lite` 的 `explore` 可执行文件。
 
 **人工喊停**（本期需求的核心交互）：
 
@@ -254,18 +254,18 @@ ros2 topic pub --once /explore/resume std_msgs/msg/Bool "{data: true}"    # 恢�
 
 `observation_sources` 使用同一份 `/scan`。
 
-## 6. 新包 myexplore
+## 6. 新包 mynav
 
 | 项 | 值 |
 |---|---|
-| 包名 | `myexplore` |
+| 包名 | `mynav` |
 | 构建类型 | `ament_cmake`（仅安装 launch/config，无编译目标） |
 | 依赖 | `slam_toolbox`, `nav2_bringup`, `nav2_collision_monitor`, `pointcloud_to_laserscan`, `explore_lite`, `livox_ros_driver2`, `odin_ros_driver` |
 
 目录结构：
 
 ```
-myexplore/
+mynav/
 ├── CMakeLists.txt
 ├── package.xml
 ├── launch/
@@ -282,7 +282,7 @@ myexplore/
     └── explore.rviz
 ```
 
-**关于 `mynav`**：其 `config/nav2_params.yaml` 迁移至 `myexplore` 后，`mynav` 将只剩空壳。本期不动它（避免引入无关改动），但需记录它为待清理项。
+**关于 `mynav`**：其 `config/nav2_params.yaml` 迁移至 `mynav` 后，`mynav` 将只剩空壳。本期不动它（避免引入无关改动），但需记录它为待清理项。
 
 ## 7. 启动顺序
 
@@ -292,7 +292,7 @@ myexplore/
 |---|---|---|
 | 1 | `mysystem`：`robot_state_publisher` + `joint_state_publisher` + `foxglove_bridge` | 后台，现状不变 |
 | 2 | `mycontrol`：odin + MID360 + 底盘控制 | 后台（现为前台，需调整） |
-| 3 | `myexplore`：slam_toolbox + nav2 + explore_lite | 前台 |
+| 3 | `mynav`：slam_toolbox + nav2 + explore_lite | 前台 |
 
 顺序约束：slam_toolbox 与 nav2 需要 `/scan` 与 odin 的 TF 就绪；explore_lite 需要 `map` 与 nav2 的 `NavigateToPose` action server 就绪。采用后台启动前两阶段、延迟后启动第三阶段，延迟值（现为 `WAIT_SEC=3`）需按实机调整。
 

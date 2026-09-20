@@ -7,7 +7,7 @@ from launch_ros.actions import Node
 
 def generate_launch_description():
     params_file = os.path.join(
-        get_package_share_directory("myexplore"), "config", "explore_params.yaml"
+        get_package_share_directory("mynav"), "config", "explore_params.yaml"
     )
 
     # 不用上游自带的 explore.launch.py：它把参数文件写死为 params.yaml

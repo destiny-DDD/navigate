@@ -33,20 +33,20 @@
 
 ---
 
-### Task 1: 屏蔽 map_merge，搭建 myexplore 包骨架
+### Task 1: 屏蔽 map_merge，搭建 mynav 包骨架
 
 **Files:**
 - Create: `src/m-explore-ros2/map_merge/COLCON_IGNORE`（空文件）
-- Move: `myexplore/`（仓库根目录，用户已创建的模板空壳）→ `src/myexplore/`
-- Rewrite: `src/myexplore/package.xml`
-- Rewrite: `src/myexplore/CMakeLists.txt`
-- Delete: `src/myexplore/src/`、`src/myexplore/include/`（模板生成的空目录，纯配置包用不上）
-- Create: `src/myexplore/launch/.gitkeep`
-- Create: `src/myexplore/config/.gitkeep`
+- Move: `mynav/`（仓库根目录，用户已创建的模板空壳）→ `src/mynav/`
+- Rewrite: `src/mynav/package.xml`
+- Rewrite: `src/mynav/CMakeLists.txt`
+- Delete: `src/mynav/src/`、`src/mynav/include/`（模板生成的空目录，纯配置包用不上）
+- Create: `src/mynav/launch/.gitkeep`
+- Create: `src/mynav/config/.gitkeep`
 
 **Interfaces:**
 - Consumes: 无（首个任务）
-- Produces: 包名 `myexplore`，其 share 目录下的 `launch/` 与 `config/` 供后续所有任务放置文件。后续任务一律通过 `get_package_share_directory("myexplore")` 定位。
+- Produces: 包名 `mynav`，其 share 目录下的 `launch/` 与 `config/` 供后续所有任务放置文件。后续任务一律通过 `get_package_share_directory("mynav")` 定位。
 
 - [x] **Step 1: 屏蔽 map_merge 包**
 
@@ -58,25 +58,25 @@ touch src/m-explore-ros2/map_merge/COLCON_IGNORE
 
 - [x] **Step 2: 清掉模板留下的空目录**
 
-> 原步骤"把根目录 `myexplore/` 挪进 `src/`"已由用户于 2026-09-18 自行完成（`ros2 pkg create` 生成的空壳现已在 `src/myexplore/`），故此处只剩清理。
+> 原步骤"把根目录 `mynav/` 挪进 `src/`"已由用户于 2026-09-18 自行完成（`ros2 pkg create` 生成的空壳现已在 `src/mynav/`），故此处只剩清理。
 
 ```bash
 # 纯配置包没有编译目标，用不上这两个空目录（留着会让后来者以为这里要写 C++）。
-rmdir src/myexplore/src src/myexplore/include/myexplore src/myexplore/include
+rmdir src/mynav/src src/mynav/include/mynav src/mynav/include
 ```
 
 清理后确认：
 
 ```bash
-find src/myexplore | sort
+find src/mynav | sort
 ```
 
 Expected:
 ```
-src/myexplore
-src/myexplore/CMakeLists.txt
-src/myexplore/LICENSE
-src/myexplore/package.xml
+src/mynav
+src/mynav/CMakeLists.txt
+src/mynav/LICENSE
+src/mynav/package.xml
 ```
 （`LICENSE` 保留，与 `src/mynav` 的做法一致）
 
@@ -84,13 +84,13 @@ src/myexplore/package.xml
 
 `mv` 过来的 `package.xml` 是模板生成的无用内容（`<description>TODO: Package description</description>`，且依赖只有 `rclcpp`）。整体替换为：
 
-创建 `src/myexplore/package.xml`：
+创建 `src/mynav/package.xml`：
 
 ```xml
 <?xml version="1.0"?>
 <?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
 <package format="3">
-  <name>myexplore</name>
+  <name>mynav</name>
   <version>0.0.0</version>
   <description>自主探索建图：MID360 点云转 2D 扫描，slam_toolbox 建图，nav2 导航，explore_lite 决策。</description>
   <maintainer email="shifengddd@gmail.com">shi</maintainer>
@@ -122,11 +122,11 @@ src/myexplore/package.xml
 
 同样把模板生成的内容整体替换为：
 
-创建 `src/myexplore/CMakeLists.txt`：
+创建 `src/mynav/CMakeLists.txt`：
 
 ```cmake
 cmake_minimum_required(VERSION 3.8)
-project(myexplore)
+project(mynav)
 
 find_package(ament_cmake REQUIRED)
 
@@ -152,24 +152,24 @@ ament_package()
 `install(DIRECTORY ...)` 在目录不存在时会直接报错，所以先占位。
 
 ```bash
-mkdir -p src/myexplore/launch src/myexplore/config
-touch src/myexplore/launch/.gitkeep src/myexplore/config/.gitkeep
+mkdir -p src/mynav/launch src/mynav/config
+touch src/mynav/launch/.gitkeep src/mynav/config/.gitkeep
 ```
 
 - [x] **Step 6: 构建并验证**
 
 ```bash
-colcon build --packages-select myexplore
+colcon build --packages-select mynav
 ```
 
 Expected: `Summary: 1 package finished [N s]`，无 stderr 报错。
 
 ```bash
 source install/setup.bash
-ros2 pkg prefix myexplore
+ros2 pkg prefix mynav
 ```
 
-Expected: `/home/shi/nav/install/myexplore`
+Expected: `/home/shi/nav/install/mynav`
 
 ```bash
 colcon list | grep -c map_merge
@@ -180,8 +180,8 @@ Expected: `0`（屏蔽生效；此前 `multirobot_map_merge` 会出现在列表�
 - [x] **Step 7: Commit**
 
 ```bash
-git add src/myexplore src/m-explore-ros2/map_merge/COLCON_IGNORE
-git commit -m "feat(myexplore): 新建探索包骨架并屏蔽 map_merge"
+git add src/mynav src/m-explore-ros2/map_merge/COLCON_IGNORE
+git commit -m "feat(mynav): 新建探索包骨架并屏蔽 map_merge"
 ```
 
 ---
@@ -190,11 +190,11 @@ git commit -m "feat(myexplore): 新建探索包骨架并屏蔽 map_merge"
 
 **Files:**
 - Modify: `src/mycontrol/launch/mycontrol_launch.py`（`xfer_format` 1 → 0）
-- Create: `src/myexplore/config/scan.yaml`
-- Create: `src/myexplore/launch/scan.launch.py`
+- Create: `src/mynav/config/scan.yaml`
+- Create: `src/mynav/launch/scan.launch.py`
 
 **Interfaces:**
-- Consumes: `myexplore` 包（Task 1）
+- Consumes: `mynav` 包（Task 1）
 - Produces: 话题 `/scan`（`sensor_msgs/msg/LaserScan`），`frame_id` 为 `base_link`，供 Task 3 的 `slam_toolbox` 与 Task 4/5 的 nav2 costmap 消费。
 
 **背景（务必先读）**：现有 `mycontrol_launch.py` 设 `{"xfer_format": 1}`。`src/livox_ros_driver2/src/lddc.h:42-47` 定义 `kPointCloud2Msg = 0, kLivoxCustomMsg = 1`，即 **1 发的是 `livox_ros_driver2/msg/CustomMsg`**。`pointcloud_to_laserscan` 只接受 `sensor_msgs/msg/PointCloud2`，不改这一项整条链路直接断。
@@ -217,7 +217,7 @@ git commit -m "feat(myexplore): 新建探索包骨架并屏蔽 map_merge"
 
 - [x] **Step 2: 写 scan.yaml**
 
-创建 `src/myexplore/config/scan.yaml`：
+创建 `src/mynav/config/scan.yaml`：
 
 ```yaml
 pointcloud_to_laserscan:
@@ -243,7 +243,7 @@ pointcloud_to_laserscan:
 
 - [x] **Step 3: 写 scan.launch.py**
 
-创建 `src/myexplore/launch/scan.launch.py`：
+创建 `src/mynav/launch/scan.launch.py`：
 
 ```python
 import os
@@ -256,7 +256,7 @@ from launch_ros.actions import Node
 def generate_launch_description():
     # 从本包 share 目录读参数，保证装到 install/ 之后依然能找到。
     params_file = os.path.join(
-        get_package_share_directory("myexplore"), "config", "scan.yaml"
+        get_package_share_directory("mynav"), "config", "scan.yaml"
     )
 
     scan_node = Node(
@@ -282,9 +282,9 @@ def generate_launch_description():
 - [x] **Step 4: 构建并做语法检查**
 
 ```bash
-python3 -m py_compile src/myexplore/launch/scan.launch.py && echo "launch 语法 OK"
-python3 -c "import yaml,sys; yaml.safe_load(open('src/myexplore/config/scan.yaml')); print('yaml 语法 OK')"
-colcon build --packages-select myexplore mycontrol
+python3 -m py_compile src/mynav/launch/scan.launch.py && echo "launch 语法 OK"
+python3 -c "import yaml,sys; yaml.safe_load(open('src/mynav/config/scan.yaml')); print('yaml 语法 OK')"
+colcon build --packages-select mynav mycontrol
 ```
 
 Expected: 三行都成功，`Summary: 2 packages finished`。
@@ -327,7 +327,7 @@ Expected: `average rate: 10.0` 左右（±0.5）。
 终端 B 继续：
 
 ```bash
-ros2 launch myexplore scan.launch.py
+ros2 launch mynav scan.launch.py
 ```
 
 另开终端 C：
@@ -392,8 +392,8 @@ ros2 run tf2_ros tf2_echo base_link livox_frame
 - [ ] **Step 9: Commit**
 
 ```bash
-git add src/mycontrol/launch/mycontrol_launch.py src/myexplore/config/scan.yaml src/myexplore/launch/scan.launch.py
-git commit -m "feat(myexplore): MID360 点云转 2D 扫描，Livox 改发 PointCloud2"
+git add src/mycontrol/launch/mycontrol_launch.py src/mynav/config/scan.yaml src/mynav/launch/scan.launch.py
+git commit -m "feat(mynav): MID360 点云转 2D 扫描，Livox 改发 PointCloud2"
 ```
 
 ---
@@ -401,8 +401,8 @@ git commit -m "feat(myexplore): MID360 点云转 2D 扫描，Livox 改发 PointC
 ### Task 3: slam_toolbox 建图层
 
 **Files:**
-- Create: `src/myexplore/config/slam_toolbox.yaml`
-- Create: `src/myexplore/launch/slam.launch.py`
+- Create: `src/mynav/config/slam_toolbox.yaml`
+- Create: `src/mynav/launch/slam.launch.py`
 
 **Interfaces:**
 - Consumes: `/scan`（Task 2）、`odom`→`imu` TF 与 `/odin1/odometry`（odin，已就绪）
@@ -414,10 +414,10 @@ git commit -m "feat(myexplore): MID360 点云转 2D 扫描，Livox 改发 PointC
 
 ```bash
 cp /opt/ros/jazzy/share/slam_toolbox/config/mapper_params_online_async.yaml \
-   src/myexplore/config/slam_toolbox.yaml
+   src/mynav/config/slam_toolbox.yaml
 ```
 
-然后修改 `src/myexplore/config/slam_toolbox.yaml` 这一行：
+然后修改 `src/mynav/config/slam_toolbox.yaml` 这一行：
 
 ```yaml
     base_frame: base_footprint
@@ -435,7 +435,7 @@ cp /opt/ros/jazzy/share/slam_toolbox/config/mapper_params_online_async.yaml \
 
 - [x] **Step 2: 写 slam.launch.py**
 
-创建 `src/myexplore/launch/slam.launch.py`：
+创建 `src/mynav/launch/slam.launch.py`：
 
 ```python
 import os
@@ -448,7 +448,7 @@ from launch.substitutions import LaunchConfiguration
 
 
 def generate_launch_description():
-    myexplore_share = get_package_share_directory("myexplore")
+    mynav_share = get_package_share_directory("mynav")
     slam_toolbox_share = get_package_share_directory("slam_toolbox")
 
     slam_params_file = LaunchConfiguration("slam_params_file")
@@ -456,7 +456,7 @@ def generate_launch_description():
 
     declare_slam_params_file = DeclareLaunchArgument(
         "slam_params_file",
-        default_value=os.path.join(myexplore_share, "config", "slam_toolbox.yaml"),
+        default_value=os.path.join(mynav_share, "config", "slam_toolbox.yaml"),
         description="slam_toolbox 参数文件路径",
     )
     declare_use_sim_time = DeclareLaunchArgument(
@@ -491,9 +491,9 @@ def generate_launch_description():
 - [x] **Step 3: 构建并做语法检查**
 
 ```bash
-python3 -m py_compile src/myexplore/launch/slam.launch.py && echo "launch 语法 OK"
-python3 -c "import yaml; yaml.safe_load(open('src/myexplore/config/slam_toolbox.yaml')); print('yaml 语法 OK')"
-colcon build --packages-select myexplore
+python3 -m py_compile src/mynav/launch/slam.launch.py && echo "launch 语法 OK"
+python3 -c "import yaml; yaml.safe_load(open('src/mynav/config/slam_toolbox.yaml')); print('yaml 语法 OK')"
+colcon build --packages-select mynav
 ```
 
 Expected: 全部成功。
@@ -504,7 +504,7 @@ Expected: 全部成功。
 
 ```bash
 source /opt/ros/jazzy/setup.bash && source install/setup.bash
-ros2 launch myexplore slam.launch.py
+ros2 launch mynav slam.launch.py
 ```
 
 Expected 日志：`[LifecycleLaunch] Slamtoolbox node is activating.`，随后 `slam_toolbox` 报 `Using solver plugin solver_plugins::CeresSolver` 与 `SlamToolbox: Starting...`。
@@ -559,8 +559,8 @@ Expected: `width`/`height` 随行进扩大。
 - [ ] **Step 7: Commit**
 
 ```bash
-git add src/myexplore/config/slam_toolbox.yaml src/myexplore/launch/slam.launch.py
-git commit -m "feat(myexplore): 接入 slam_toolbox 在线异步建图"
+git add src/mynav/config/slam_toolbox.yaml src/mynav/launch/slam.launch.py
+git commit -m "feat(mynav): 接入 slam_toolbox 在线异步建图"
 ```
 
 ---
@@ -568,8 +568,8 @@ git commit -m "feat(myexplore): 接入 slam_toolbox 在线异步建图"
 ### Task 4: nav2 参数迁移与修正 + navigation.launch.py
 
 **Files:**
-- Create: `src/myexplore/config/nav2_params.yaml`（自 `src/mynav/config/nav2_params.yaml` 迁移）
-- Create: `src/myexplore/launch/navigation.launch.py`
+- Create: `src/mynav/config/nav2_params.yaml`（自 `src/mynav/config/nav2_params.yaml` 迁移）
+- Create: `src/mynav/launch/navigation.launch.py`
 - Create: `tools/check_nav2_params.py`（自动断言脚本）
 
 **Interfaces:**
@@ -579,7 +579,7 @@ git commit -m "feat(myexplore): 接入 slam_toolbox 在线异步建图"
 - [x] **Step 1: 迁移参数文件**
 
 ```bash
-cp src/mynav/config/nav2_params.yaml src/myexplore/config/nav2_params.yaml
+cp src/mynav/config/nav2_params.yaml src/mynav/config/nav2_params.yaml
 ```
 
 - [x] **Step 2: 写自动断言脚本**
@@ -600,7 +600,7 @@ import sys
 
 import yaml
 
-path = sys.argv[1] if len(sys.argv) > 1 else "src/myexplore/config/nav2_params.yaml"
+path = sys.argv[1] if len(sys.argv) > 1 else "src/mynav/config/nav2_params.yaml"
 
 with open(path) as f:
     raw = f.read()
@@ -722,7 +722,7 @@ Expected: `退出码: 1`
 
 - [x] **Step 4: 修正 bt_navigator 的里程计话题**
 
-在 `src/myexplore/config/nav2_params.yaml` 中：
+在 `src/mynav/config/nav2_params.yaml` 中：
 
 ```yaml
     odom_topic: /odom  # 里程计话题，用于行为树获取机器人运动状态。
@@ -873,7 +873,7 @@ Expected: 全部 `PASS`，末行 `25/25 通过`，退出码 0。
 
 - [x] **Step 13: 写 navigation.launch.py**
 
-创建 `src/myexplore/launch/navigation.launch.py`：
+创建 `src/mynav/launch/navigation.launch.py`：
 
 ```python
 import os
@@ -886,7 +886,7 @@ from launch.substitutions import LaunchConfiguration
 
 
 def generate_launch_description():
-    myexplore_share = get_package_share_directory("myexplore")
+    mynav_share = get_package_share_directory("mynav")
     nav2_bringup_share = get_package_share_directory("nav2_bringup")
 
     params_file = LaunchConfiguration("params_file")
@@ -895,7 +895,7 @@ def generate_launch_description():
 
     declare_params_file = DeclareLaunchArgument(
         "params_file",
-        default_value=os.path.join(myexplore_share, "config", "nav2_params.yaml"),
+        default_value=os.path.join(mynav_share, "config", "nav2_params.yaml"),
         description="nav2 参数文件路径",
     )
     declare_use_sim_time = DeclareLaunchArgument(
@@ -942,10 +942,10 @@ def generate_launch_description():
 - [x] **Step 14: 构建并检查启动参数**
 
 ```bash
-python3 -m py_compile src/myexplore/launch/navigation.launch.py && echo "launch 语法 OK"
-colcon build --packages-select myexplore
+python3 -m py_compile src/mynav/launch/navigation.launch.py && echo "launch 语法 OK"
+colcon build --packages-select mynav
 source install/setup.bash
-ros2 launch myexplore navigation.launch.py --show-args
+ros2 launch mynav navigation.launch.py --show-args
 ```
 
 Expected: 列出 `params_file` / `use_sim_time` / `autostart` 三个参数，`use_sim_time` 默认 `'false'`。
@@ -956,7 +956,7 @@ Expected: 列出 `params_file` / `use_sim_time` / `autostart` 三个参数，`us
 
 ```bash
 source /opt/ros/jazzy/setup.bash && source install/setup.bash
-ros2 launch myexplore navigation.launch.py
+ros2 launch mynav navigation.launch.py
 ```
 
 另开终端确认生命周期状态：
@@ -1003,8 +1003,8 @@ Expected: `planner_server` 报出路径（`Received a goal, begin computing cont
 - [ ] **Step 17: Commit**
 
 ```bash
-git add src/myexplore/config/nav2_params.yaml src/myexplore/launch/navigation.launch.py tools/check_nav2_params.py
-git commit -m "feat(myexplore): 迁移 nav2 参数并修正为麦轮全向构型"
+git add src/mynav/config/nav2_params.yaml src/mynav/launch/navigation.launch.py tools/check_nav2_params.py
+git commit -m "feat(mynav): 迁移 nav2 参数并修正为麦轮全向构型"
 ```
 
 ---
@@ -1012,7 +1012,7 @@ git commit -m "feat(myexplore): 迁移 nav2 参数并修正为麦轮全向构型
 ### Task 5: collision_monitor 安全区
 
 **Files:**
-- Modify: `src/myexplore/config/nav2_params.yaml`（`collision_monitor` 段）
+- Modify: `src/mynav/config/nav2_params.yaml`（`collision_monitor` 段）
 
 **Interfaces:**
 - Consumes: Task 4 的 `collision_monitor` 节点与 `nav2_params.yaml`
@@ -1044,7 +1044,7 @@ Expected: 前 25 项全 `PASS`，新增的 4 项全 `FAIL`，末行 `25/29 通�
 
 - [x] **Step 3: 扩充 polygons 列表**
 
-在 `src/myexplore/config/nav2_params.yaml` 中：
+在 `src/mynav/config/nav2_params.yaml` 中：
 
 ```yaml
     polygons: ["FootprintApproach"]  # 启用的碰撞区域名称。
@@ -1100,7 +1100,7 @@ Expected: 前 25 项全 `PASS`，新增的 4 项全 `FAIL`，末行 `25/29 通�
 - `nav2_collision_monitor/scan.hpp` 的 `Scan` 类只有 `data_sub_`、`data_` 两个成员，无高度成员；`source.hpp` 基类与 `range.hpp` 同样没有。只有 `pointcloud.hpp:97` 有 `double min_height_, max_height_;`，即这对参数专属 `PointCloud` 类观测源。
 - 实测：以本参数文件 `configure` 后 `ros2 param list` 只见 `scan.type` / `scan.topic` / `scan.enabled` / `scan.source_timeout`，无高度项。
 
-**这段死配置比一般的死配置更危险**：它与 `src/myexplore/config/scan.yaml` 中真正生效的 `min_height` / `max_height` 同名。将来调扫描高度窗口的人若改到这里，会毫无效果，并误以为碰撞侧的高度过滤已经配过 —— 而 Task 2 Step 7 的分支 B（雷达斜装）恰恰是个需要调高度窗口的场景。
+**这段死配置比一般的死配置更危险**：它与 `src/mynav/config/scan.yaml` 中真正生效的 `min_height` / `max_height` 同名。将来调扫描高度窗口的人若改到这里，会毫无效果，并误以为碰撞侧的高度过滤已经配过 —— 而 Task 2 Step 7 的分支 B（雷达斜装）恰恰是个需要调高度窗口的场景。
 
 删除这两行，替换为说明注释：
 
@@ -1117,7 +1117,7 @@ Expected: 前 25 项全 `PASS`，新增的 4 项全 `FAIL`，末行 `25/29 通�
       # （见 nav2_collision_monitor/pointcloud.hpp 的 min_height_/max_height_ 成员），
       # scan 源的 Scan 类并无这两个成员。实测：节点 configure 后
       # `ros2 param list` 只见 scan.type / scan.topic / scan.enabled / scan.source_timeout。
-      # 留着它们会有害 —— 真正决定扫描高度窗口的是 myexplore/config/scan.yaml 里的
+      # 留着它们会有害 —— 真正决定扫描高度窗口的是 mynav/config/scan.yaml 里的
       # 同名参数，在此处改高度不会有任何效果，反而会让人以为配过碰撞侧的高度过滤。
       enabled: True  # 是否启用该激光观测源。
 ```
@@ -1147,9 +1147,9 @@ Expected: 全部 `PASS`，末行 `31/31 通过`（25 项 + 4 项 + 2 项）。
 重启 nav2 使新配置生效：
 
 ```bash
-colcon build --packages-select myexplore
+colcon build --packages-select mynav
 source install/setup.bash
-ros2 launch myexplore navigation.launch.py
+ros2 launch mynav navigation.launch.py
 ```
 
 在 Foxglove 中显示 `/collision_monitor_state` 与 `/cmd_vel`。
@@ -1182,8 +1182,8 @@ Expected: 两个话题都仍在发布，但 `/cmd_vel` 内容为零。若 `/cmd_
 - [ ] **Step 9: Commit**
 
 ```bash
-git add src/myexplore/config/nav2_params.yaml tools/check_nav2_params.py
-git commit -m "feat(myexplore): collision_monitor 增加急停区与减速区"
+git add src/mynav/config/nav2_params.yaml tools/check_nav2_params.py
+git commit -m "feat(mynav): collision_monitor 增加急停区与减速区"
 ```
 
 ---
@@ -1191,9 +1191,9 @@ git commit -m "feat(myexplore): collision_monitor 增加急停区与减速区"
 ### Task 6: explore_lite 接入 + explore_bringup 总入口
 
 **Files:**
-- Create: `src/myexplore/config/explore_params.yaml`
-- Create: `src/myexplore/launch/explore.launch.py`
-- Create: `src/myexplore/launch/explore_bringup.launch.py`
+- Create: `src/mynav/config/explore_params.yaml`
+- Create: `src/mynav/launch/explore.launch.py`
+- Create: `src/mynav/launch/explore_bringup.launch.py`
 
 **Interfaces:**
 - Consumes: `/map`（Task 3）、`/global_costmap/costmap` 与 `NavigateToPose` action server（Task 4）
@@ -1201,7 +1201,7 @@ git commit -m "feat(myexplore): collision_monitor 增加急停区与减速区"
 
 - [x] **Step 1: 写 explore_params.yaml**
 
-创建 `src/myexplore/config/explore_params.yaml`：
+创建 `src/mynav/config/explore_params.yaml`：
 
 ```yaml
 # 根键必须是 explore_node，与 explore.launch.py 中 Node(name="explore_node") 对应。
@@ -1227,7 +1227,7 @@ explore_node:
 
 - [x] **Step 2: 写 explore.launch.py**
 
-创建 `src/myexplore/launch/explore.launch.py`：
+创建 `src/mynav/launch/explore.launch.py`：
 
 ```python
 import os
@@ -1239,7 +1239,7 @@ from launch_ros.actions import Node
 
 def generate_launch_description():
     params_file = os.path.join(
-        get_package_share_directory("myexplore"), "config", "explore_params.yaml"
+        get_package_share_directory("mynav"), "config", "explore_params.yaml"
     )
 
     # 不用上游自带的 explore.launch.py：它把参数文件写死为 params.yaml
@@ -1258,7 +1258,7 @@ def generate_launch_description():
 
 - [x] **Step 3: 写 explore_bringup.launch.py**
 
-创建 `src/myexplore/launch/explore_bringup.launch.py`：
+创建 `src/mynav/launch/explore_bringup.launch.py`：
 
 ```python
 import os
@@ -1272,7 +1272,7 @@ from launch.substitutions import LaunchConfiguration
 
 
 def generate_launch_description():
-    launch_dir = os.path.join(get_package_share_directory("myexplore"), "launch")
+    launch_dir = os.path.join(get_package_share_directory("mynav"), "launch")
 
     def include(name, condition=None):
         return IncludeLaunchDescription(
@@ -1299,13 +1299,13 @@ def generate_launch_description():
 - [x] **Step 4: 构建并做语法检查**
 
 ```bash
-for f in src/myexplore/launch/explore.launch.py src/myexplore/launch/explore_bringup.launch.py; do
+for f in src/mynav/launch/explore.launch.py src/mynav/launch/explore_bringup.launch.py; do
   python3 -m py_compile "$f" || exit 1
 done
-python3 -c "import yaml; yaml.safe_load(open('src/myexplore/config/explore_params.yaml')); print('yaml 语法 OK')"
-colcon build --packages-select myexplore
+python3 -c "import yaml; yaml.safe_load(open('src/mynav/config/explore_params.yaml')); print('yaml 语法 OK')"
+colcon build --packages-select mynav
 source install/setup.bash
-ros2 launch myexplore explore_bringup.launch.py --show-args
+ros2 launch mynav explore_bringup.launch.py --show-args
 ```
 
 Expected: 列出 `explore` 参数，默认 `'true'`。
@@ -1313,7 +1313,7 @@ Expected: 列出 `explore` 参数，默认 `'true'`。
 - [ ] **Step 5: 验证 explore 开关生效**
 
 ```bash
-ros2 launch myexplore explore_bringup.launch.py explore:=false
+ros2 launch mynav explore_bringup.launch.py explore:=false
 ```
 
 另开终端：
@@ -1327,7 +1327,7 @@ Expected: 无输出（探索确实没起）。
 Ctrl+C 退出，再起完整版：
 
 ```bash
-ros2 launch myexplore explore_bringup.launch.py explore:=true
+ros2 launch mynav explore_bringup.launch.py explore:=true
 ```
 
 Expected: 日志出现 `[explore_node]` 前缀的行。
@@ -1418,8 +1418,8 @@ Expected: 生成 `~/nav_map.pgm` 与 `~/nav_map.yaml`。
 - [ ] **Step 11: Commit**
 
 ```bash
-git add src/myexplore/config/explore_params.yaml src/myexplore/launch/explore.launch.py src/myexplore/launch/explore_bringup.launch.py
-git commit -m "feat(myexplore): 接入 explore_lite 自主探索与总入口 launch"
+git add src/mynav/config/explore_params.yaml src/mynav/launch/explore.launch.py src/mynav/launch/explore_bringup.launch.py
+git commit -m "feat(mynav): 接入 explore_lite 自主探索与总入口 launch"
 ```
 
 ---
@@ -1430,7 +1430,7 @@ git commit -m "feat(myexplore): 接入 explore_lite 自主探索与总入口 lau
 - Modify: `mystart.sh`（重整为三阶段）
 
 **Interfaces:**
-- Consumes: `myexplore/launch/explore_bringup.launch.py`（Task 6）
+- Consumes: `mynav/launch/explore_bringup.launch.py`（Task 6）
 - Produces: 一键启动入口，无下游。
 
 **顺序约束**：`slam_toolbox` 与 nav2 需要 `/scan` 与 odin 的 TF 就绪；`explore_lite` 需要 `/map` 与 nav2 的 `NavigateToPose` action server 就绪。因此前两层后台起、延迟后起第三层，且第三层放前台以便 Ctrl+C 退出。
@@ -1443,7 +1443,7 @@ git commit -m "feat(myexplore): 接入 explore_lite 自主探索与总入口 lau
 # 一键启动：系统层 -> 控制层 -> 探索层，三层依次拉起。
 #   mysystem  : robot_state_publisher + joint_state_publisher + foxglove_bridge  （后台）
 #   mycontrol : odin 雷达 + MID360 + 底盘控制节点                                  （后台）
-#   myexplore : slam_toolbox + nav2 + explore_lite                                 （前台）
+#   mynav : slam_toolbox + nav2 + explore_lite                                 （前台）
 #
 # Ctrl+C 退出时会自动把后台的两个 launch 一起收掉，不留孤儿进程。
 #
@@ -1472,7 +1472,7 @@ if [ ! -f install/setup.bash ]; then  # 本工作区的环境文件不存在，�
     exit 1  # 没构建就没法启动，直接退出。
 fi  # 结束工作区检查。
 # shellcheck disable=SC1091  # 告诉 shellcheck 别警告“source 的文件此刻不存在”（它是运行时才生成的）。
-source install/setup.bash  # 载入本工作区环境，让 ros2 能找到 mysystem / mycontrol / myexplore。
+source install/setup.bash  # 载入本工作区环境，让 ros2 能找到 mysystem / mycontrol / mynav。
 
 WAIT_SEC="${WAIT_SEC:-3}"    # 系统层起来后等几秒再拉控制层，可用环境变量覆盖。
 WAIT_SEC2="${WAIT_SEC2:-8}"  # 控制层起来后等几秒再拉探索层；雷达与 TF 就绪需要更久，所以默认值更大。
@@ -1507,8 +1507,8 @@ PIDS+=($!)  # 记下后台进程的 PID。
 echo "[mystart] 等待 ${WAIT_SEC2} 秒等雷达与 TF 就绪 ..."  # 雷达出点云、odin 出 odom->imu 都需要时间。
 sleep "$WAIT_SEC2"  # 等待，避免 slam_toolbox 起来时还没有 /scan 和 TF 可订阅。
 
-echo "[mystart] 3/3 启动 myexplore（SLAM + nav2 + 探索，explore=${EXPLORE}）..."  # 打印进度，进入第三个 launch。
-ros2 launch myexplore explore_bringup.launch.py explore:="${EXPLORE}"  # 前台启动探索层，输出直接显示在终端。
+echo "[mystart] 3/3 启动 mynav（SLAM + nav2 + 探索，explore=${EXPLORE}）..."  # 打印进度，进入第三个 launch。
+ros2 launch mynav explore_bringup.launch.py explore:="${EXPLORE}"  # 前台启动探索层，输出直接显示在终端。
 
 # 第三个 launch 退出后，上面注册的 trap 会自动收掉前两个。
 

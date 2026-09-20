@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
 <package format="3">
-  <name>myexplore</name>
+  <name>mynav</name>
   <version>0.0.0</version>
   <description>自主探索建图：MID360 点云转 2D 扫描，slam_toolbox 建图，nav2 导航，explore_lite 决策。</description>
   <maintainer email="shifengddd@gmail.com">shi</maintainer>

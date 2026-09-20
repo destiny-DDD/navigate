@@ -8,7 +8,7 @@ from launch.substitutions import LaunchConfiguration
 
 
 def generate_launch_description():
-    myexplore_share = get_package_share_directory("myexplore")
+    mynav_share = get_package_share_directory("mynav")
     slam_toolbox_share = get_package_share_directory("slam_toolbox")
 
     slam_params_file = LaunchConfiguration("slam_params_file")
@@ -16,7 +16,7 @@ def generate_launch_description():
 
     declare_slam_params_file = DeclareLaunchArgument(
         "slam_params_file",
-        default_value=os.path.join(myexplore_share, "config", "slam_toolbox.yaml"),
+        default_value=os.path.join(mynav_share, "config", "slam_toolbox.yaml"),
         description="slam_toolbox 参数文件路径",
     )
     declare_use_sim_time = DeclareLaunchArgument(

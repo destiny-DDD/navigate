@@ -9,7 +9,7 @@ import sys
 
 import yaml
 
-path = sys.argv[1] if len(sys.argv) > 1 else "src/myexplore/config/nav2_params.yaml"
+path = sys.argv[1] if len(sys.argv) > 1 else "src/mynav/config/nav2_params.yaml"
 
 with open(path) as f:
     raw = f.read()

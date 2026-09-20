@@ -62,6 +62,7 @@ bt_navigator:  # 行为树导航器节点。
     navigate_through_poses:  # 多目标点导航器配置段。
       plugin: "nav2_bt_navigator::NavigateThroughPosesNavigator"  # 多目标点导航插件。
     # 以下两个行为树文件名留空时，使用 Nav2 自带的重规划和恢复行为树：
+    # default_nav_to_pose_bt_xml
     # nav2_bt_navigator/navigate_to_pose_w_replanning_and_recovery.xml
     # nav2_bt_navigator/navigate_through_poses_w_replanning_and_recovery.xml
     # 也可以在这里指定，或由上层 launch 文件通过 RewrittenYaml 重写后传给 Nav2。
@@ -426,7 +427,7 @@ collision_monitor:  # 独立碰撞监控节点。
       # （见 nav2_collision_monitor/pointcloud.hpp 的 min_height_/max_height_ 成员），
       # scan 源的 Scan 类并无这两个成员。实测：节点 configure 后
       # `ros2 param list` 只见 scan.type / scan.topic / scan.enabled / scan.source_timeout。
-      # 留着它们会有害 —— 真正决定扫描高度窗口的是 myexplore/config/scan.yaml 里的
+      # 留着它们会有害 —— 真正决定扫描高度窗口的是 mynav/config/scan.yaml 里的
       # 同名参数，在此处改高度不会有任何效果，反而会让人以为配过碰撞侧的高度过滤。
       enabled: True  # 是否启用该激光观测源。
 

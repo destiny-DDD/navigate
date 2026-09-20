@@ -8,7 +8,7 @@ from launch_ros.actions import Node
 def generate_launch_description():
     # 从本包 share 目录读参数，保证装到 install/ 之后依然能找到。
     params_file = os.path.join(
-        get_package_share_directory("myexplore"), "config", "scan.yaml"
+        get_package_share_directory("mynav"), "config", "scan.yaml"
     )
 
     scan_node = Node(

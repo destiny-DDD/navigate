@@ -9,7 +9,7 @@ from launch.substitutions import LaunchConfiguration
 
 
 def generate_launch_description():
-    launch_dir = os.path.join(get_package_share_directory("myexplore"), "launch")
+    launch_dir = os.path.join(get_package_share_directory("mynav"), "launch")
 
     def include(name, condition=None):
         return IncludeLaunchDescription(

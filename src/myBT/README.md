@@ -6,7 +6,7 @@ Nav2 中这个功能叫**行为树（Behavior Tree，BT）**。本包没有自�
 `behavior_trees/navigate_to_pose.xml` 采用本机 Nav2 自带的
 `navigate_to_pose_w_replanning_and_recovery.xml`，由 `bt_navigator` 加载执行。
 
-你现有的 `myexplore` 已经启动 Nav2：`explore_lite` 负责挑选探索目标，
+你现有的 `mynav` 已经启动 Nav2：`explore_lite` 负责挑选探索目标，
 `bt_navigator` 负责执行目标的导航行为树。本包提供一个可以查看、修改和指定的树文件。
 它负责单目标导航及失败恢复，不包含巡逻、任务调度或自动选择探索目标的逻辑。
 
@@ -17,7 +17,7 @@ Nav2 中这个功能叫**行为树（Behavior Tree，BT）**。本包没有自�
 ```bash
 cd /home/future/D/navigate
 source /opt/ros/jazzy/setup.bash
-colcon build --symlink-install --packages-select myexplore my_bt
+colcon build --symlink-install --packages-select mynav my_bt
 source install/setup.bash
 ```
 
@@ -43,7 +43,7 @@ ros2 action send_goal /navigate_to_pose nav2_msgs/action/NavigateToPose \
 若用原项目的整套建图启动入口，使用：
 
 ```bash
-ros2 launch myexplore explore_bringup.launch.py explore:=false
+ros2 launch mynav explore_bringup.launch.py explore:=false
 ```
 
 该入口已经启动 scan 转换、SLAM 和 Nav2；仍需原项目的传感器、里程计和机器人 TF。
@@ -52,13 +52,13 @@ ros2 launch myexplore explore_bringup.launch.py explore:=false
 
 ## 3. 设为默认树：RViz 和普通导航请求都使用它
 
-本包的 launch **替代** `myexplore navigation.launch.py`，只启动一套 Nav2：
+本包的 launch **替代** `mynav navigation.launch.py`，只启动一套 Nav2：
 
 ```bash
 ros2 launch my_bt navigation.launch.py
 ```
 
-它复用 `myexplore/config/nav2_params.yaml`，在启动时设置：
+它复用 `mynav/config/nav2_params.yaml`，在启动时设置：
 
 ```yaml
 bt_navigator:
@@ -70,8 +70,8 @@ bt_navigator:
 沿用原来的底层驱动和机器人 TF；若 scan 转换和 SLAM 尚未启动，可在各自终端运行：
 
 ```bash
-ros2 launch myexplore scan.launch.py
-ros2 launch myexplore slam.launch.py
+ros2 launch mynav scan.launch.py
+ros2 launch mynav slam.launch.py
 ```
 
 **不要同时运行第 2 节的 `explore_bringup.launch.py` 和本包 launch**，前者已经包含 Nav2。

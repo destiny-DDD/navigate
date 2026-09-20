@@ -1,4 +1,4 @@
-"""复用 myexplore 导航配置，将 myBT 行为树设为单目标导航默认树."""
+"""复用 mynav 导航配置，将 myBT 行为树设为单目标导航默认树."""
 
 import os  # 导入路径工具，用来拼接配置文件和行为树文件的路径。
 
@@ -12,10 +12,10 @@ from nav2_common.launch import RewrittenYaml
 
 def generate_launch_description():
     mybt_share = get_package_share_directory('my_bt')  # 获取行为树包的 share 目录。
-    myexplore_share = get_package_share_directory('myexplore')  # 获取原导航包的 share 目录。
-    nav2_params_file = os.path.join(myexplore_share, 'config', 'nav2_params.yaml')
+    mynav_share = get_package_share_directory('mynav')  # 获取原导航包的 share 目录。
+    nav2_params_file = os.path.join(mynav_share, 'config', 'nav2_params.yaml')
     behavior_tree_file = os.path.join(mybt_share, 'behavior_trees', 'navigate_to_pose.xml')
-    navigation_launch_file = os.path.join(myexplore_share, 'launch', 'navigation.launch.py')
+    navigation_launch_file = os.path.join(mynav_share, 'launch', 'navigation.launch.py')
 
     params_file = LaunchConfiguration('params_file')  # 读取完整的 Nav2 参数文件路径。
     bt_xml_file = LaunchConfiguration('bt_xml_file')  # 读取单目标导航行为树文件路径。
@@ -44,7 +44,7 @@ def generate_launch_description():
     )
 
     # 使用完整参数路径：即使原 YAML 没有这一项，也能正确添加。
-    # RewrittenYaml 生成临时文件，不修改 myexplore 的原始配置。
+    # RewrittenYaml 生成临时文件，不修改 mynav 的原始配置。
     configured_params = RewrittenYaml(
         source_file=params_file,
         param_rewrites={

@@ -8,7 +8,7 @@ from launch.substitutions import LaunchConfiguration
 
 
 def generate_launch_description():
-    myexplore_share = get_package_share_directory("myexplore")
+    mynav_share = get_package_share_directory("mynav")
     nav2_bringup_share = get_package_share_directory("nav2_bringup")
 
     params_file = LaunchConfiguration("params_file")
@@ -17,7 +17,7 @@ def generate_launch_description():
 
     declare_params_file = DeclareLaunchArgument(
         "params_file",
-        default_value=os.path.join(myexplore_share, "config", "nav2_params.yaml"),
+        default_value=os.path.join(mynav_share, "config", "nav2_params.yaml"),
         description="nav2 参数文件路径",
     )
     declare_use_sim_time = DeclareLaunchArgument(
