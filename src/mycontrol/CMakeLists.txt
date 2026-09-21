@@ -11,14 +11,12 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(geometry_msgs REQUIRED)
-find_package(libxr REQUIRED)
 
 add_executable(mycontrol src/main.cpp)
 target_include_directories(mycontrol PRIVATE include/mycontrol)
 target_link_libraries(mycontrol
   rclcpp::rclcpp
   ${geometry_msgs_TARGETS}
-  libxr::xr
 )
 
 install(TARGETS mycontrol DESTINATION lib/${PROJECT_NAME})
