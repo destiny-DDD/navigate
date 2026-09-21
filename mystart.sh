@@ -2,7 +2,7 @@
 #
 # 一键启动：先拉起系统层，再拉起控制层，两个同时运行。
 #   mysystem  : robot_state_publisher + joint_state_publisher + foxglove_bridge  （后台）
-#   mycontrol : odin 雷达 + MID360 + 底盘控制节点                                  （前台）
+#   mycontrol : Point-LIO + 底盘控制节点                                           （前台）
 #
 # Ctrl+C 退出时会自动把后台那个也收掉，不留孤儿进程。
 #
@@ -49,7 +49,7 @@ SYSTEM_PID=$!  # 记下后台进程的 PID，后面 cleanup 要靠它来关。
 echo "[mystart] 等待 ${WAIT_SEC} 秒让其就绪 ..."  # 打印进度，说明接下来要等一会儿。
 sleep "$WAIT_SEC"  # 等待，让 robot_state_publisher 先把 robot_description 发布出来。
 
-echo "[mystart] 启动 mycontrol（odin + MID360 + 底盘）..."  # 打印进度，进入第二个 launch。
+echo "[mystart] 启动 mycontrol（Point-LIO + 底盘）..."  # 打印进度，进入第二个 launch。
 ros2 launch mycontrol mycontrol_launch.py  # 前台启动控制层，这里的输出会直接显示在当前终端。
 
 # 第二个 launch 退出后，上面注册的 trap 会自动收掉第一个。

@@ -6,7 +6,7 @@
         init_map_size: 10                                   # 初始化局部地图前至少累积的有效特征点数量。
         point_filter_num: 4                                 # 点云预处理抽样间隔：每 4 个有效点保留 1 个；数值越大负载越低、点云越稀。
         space_down_sample: True                             # 是否对空间中的点云进行下采样。
-        filter_size_surf: 0.5                               # 扫描匹配用点云的体素边长（米）；越小细节越多、计算量越大。
+        filter_size_surf: 0.2                               # 扫描匹配用点云的体素边长（米）；越小细节越多、计算量越大。
         filter_size_map: 0.5                                # 局部地图的体素边长（米）；越小地图越密、内存与计算开销越大。
         ivox_nearby_type: 6                                 # IVox 邻域类型：0/6/18/26 分别查询中心、6、18、26 个相邻体素。
         runtime_pos_log_enable: False                       # 是否在运行时记录位姿日志。
