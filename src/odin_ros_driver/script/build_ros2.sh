@@ -122,6 +122,7 @@ build_workspace() {
     
     # Build with correct package name
     colcon build \
+        --symlink-install \
         --packages-select "${PACKAGE_NAME}" \
         --parallel-workers $(nproc) \
         --cmake-args \
