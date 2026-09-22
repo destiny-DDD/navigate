@@ -1,3 +1,7 @@
 [submodule "src/ros2_libxr"]
     path = src/ros2_libxr
     url = git@github.com:destiny-DDD/ROS2_LIBXR.git
+
+[submodule "src/pcd2pgm"]
+    path = src/pcd2pgm
+    url = git@github.com/destiny-DDD/pcd2pgm.git

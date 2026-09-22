@@ -13,9 +13,9 @@ from nav2_common.launch import RewrittenYaml  # 导入运行时改写 Nav2 YAML 
 def generate_launch_description():  # 定义生成整个 launch 描述的函数。
     mybt_share = get_package_share_directory("my_bt")  # 获取行为树包的 share 目录。
     mynav_share = get_package_share_directory("mynav")  # 获取导航包的 share 目录。
-    nav2_params_file = os.path.join(mynav_share, "config", "nav2_params.yaml")  # 拼出 Nav2 参数文件路径。
+    nav2_params_file = os.path.join(mynav_share, "params", "nav2_params.yaml")  # 拼出 Nav2 参数文件路径。
     behavior_tree_file = os.path.join(mybt_share, "behavior_trees", "navigate_to_pose.xml")  # 拼出行为树文件路径。
-    navigation_launch_file = os.path.join(mynav_share, "launch", "navigation.launch.py")  # 拼出底层 launch 文件路径。
+    navigation_launch_file = os.path.join(mynav_share, "launch", "mynav2_launch.py")  # 拼出底层 launch 文件路径。
 
     params_file = LaunchConfiguration("params_file")  # 读取完整的 Nav2 参数文件路径。
     bt_xml_file = LaunchConfiguration("bt_xml_file")  # 读取单目标导航行为树文件路径。

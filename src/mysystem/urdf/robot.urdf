@@ -114,7 +114,7 @@
       </geometry>
     </collision>
   </link>
-  <link name="livox_frame">
+  <link name="body">
     <inertial>
       <mass value="0.33968131"/>
       <origin xyz="-0.00021249 -0.00000279 -0.00035636" rpy="0 0 0"/>
@@ -130,25 +130,6 @@
       <origin xyz="0 0 0" rpy="0 0 0"/>
       <geometry>
         <mesh filename="package://mysystem/meshes/livox_frame.stl"/>
-      </geometry>
-    </collision>
-  </link>
-  <link name="imu">
-    <inertial>
-      <mass value="0.55271082"/>
-      <origin xyz="0.00151898 0.00005312 0.0005702" rpy="0 0 0"/>
-      <inertia ixx="0.00059459" ixy="-0.00000311" ixz="-3.8e-7" iyy="0.00024231" iyz="-5e-7" izz="0.00051133"/>
-    </inertial>
-    <visual>
-      <origin xyz="0 0 0" rpy="0 0 0"/>
-      <geometry>
-        <mesh filename="package://mysystem/meshes/imu.stl"/>
-      </geometry>
-    </visual>
-    <collision>
-      <origin xyz="0 0 0" rpy="0 0 0"/>
-      <geometry>
-        <mesh filename="package://mysystem/meshes/imu.stl"/>
       </geometry>
     </collision>
   </link>
@@ -182,16 +163,10 @@
     <origin xyz="0 0 -0.1039" rpy="0 0 0"/>
     <axis xyz="0 0 1"/>
   </joint>
-  <joint name="joint_livox_frame" type="fixed">
-    <parent link="up"/>
-    <child link="livox_frame"/>
-    <origin xyz="-0.0808 0 0.0951" rpy="0.00000735 0.78539265 3.14159265"/>
-    <axis xyz="0 0 1"/>
-  </joint>
-  <joint name="joint_imu_up" type="fixed">
-    <parent link="imu"/>
+  <joint name="joint_body" type="fixed">
+    <parent link="body"/>
     <child link="up"/>
-    <origin xyz="-0.0768 -0.025 -0.063" rpy="0 0 0"/>
+    <origin xyz="0.0101109412 -0.0000009142 -0.1243801386" rpy="0.0000103944 0.78539265 -3.1415853037"/>
     <axis xyz="0 0 1"/>
   </joint>
 </robot>
