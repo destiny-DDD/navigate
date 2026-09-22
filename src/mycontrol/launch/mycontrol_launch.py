@@ -49,6 +49,7 @@ def generate_launch_description():  # 定义生成整个 launch 描述的函数�
     )
     system_launch = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(system_launch_file),
+        launch_arguments={'rviz': 'true'}.items(),
     )
 
     ld = LaunchDescription()  # 创建一个空的 launch 描述对象。

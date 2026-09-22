@@ -63,5 +63,5 @@
             tf_send_en: True                                # 是否发布 camera_init 到 aft_mapped 的 TF 变换。
 
         pcd_save:
-            pcd_save_en: False                              # 是否将建图点云保存为 PCD 文件。
+            pcd_save_en: True                              # 是否将建图点云保存为 PCD 文件。
             interval: -1                                    # 每个 PCD 文件包含的雷达帧数；-1 表示全部写入一个文件，长时间运行可能耗尽内存。

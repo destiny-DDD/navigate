@@ -15,6 +15,7 @@ def generate_launch_description():  # 定义生成整个 launch 描述的函数�
     rviz_file = os.path.join(package_share, "rviz", "rviz.rviz")  # 拼出 RViz 配置文件的完整路径。
 
     use_gui = LaunchConfiguration("use_gui")  # 读取是否启动关节状态 GUI 的启动参数。
+    use_rviz = LaunchConfiguration('rviz')  # 读取是否启动 RViz 的启动参数。
     use_sim_time = LaunchConfiguration("use_sim_time")  # 读取是否使用仿真时间的启动参数。
 
     robot_description = ParameterValue(  # 创建 robot_description 参数的值。
@@ -27,6 +28,11 @@ def generate_launch_description():  # 定义生成整个 launch 描述的函数�
         default_value="false",  # 默认不启动 GUI，使用普通 joint_state_publisher。
         description="Start the joint state publisher GUI",  # 这个参数在命令行帮助中的说明。
     )  # 结束 use_gui 参数声明。
+    declare_rviz = DeclareLaunchArgument(  # 声明是否启动 RViz 的参数。
+        'rviz',  # 启动参数的名字。
+        default_value='true',  # 默认启动 RViz，保持原有行为。
+        description='Start RViz',  # 这个参数在命令行帮助中的说明。
+    )  # 结束 rviz 参数声明。
     declare_use_sim_time = DeclareLaunchArgument(  # 声明是否使用仿真时间的参数。
         "use_sim_time",  # 启动参数的名字。
         default_value="false",  # 默认使用系统时间，而不是仿真时间 /clock。
@@ -79,11 +85,13 @@ def generate_launch_description():  # 定义生成整个 launch 描述的函数�
         executable="rviz2",  # 指定要运行的可执行程序。
         name="rviz2",  # 指定节点在 ROS 图中的名字。
         output="screen",  # 将节点日志输出到当前终端。
+        condition=IfCondition(use_rviz),  # 只有 rviz 为 true 时才启动此节点。
         arguments=["-d", rviz_file],  # 加载指定的 RViz 配置文件。
     )  # 结束 RViz2 节点定义。
 
     ld = LaunchDescription()  # 创建一个空的 launch 描述对象。
     ld.add_action(declare_use_gui)  # 将 use_gui 参数声明加入 launch 描述。
+    ld.add_action(declare_rviz)  # 将 rviz 参数声明加入 launch 描述。
     ld.add_action(declare_use_sim_time)  # 将 use_sim_time 参数声明加入 launch 描述。
     ld.add_action(robot_state_publisher)  # 将 robot_state_publisher 节点加入 launch 描述。
     ld.add_action(joint_state_publisher)  # 将普通关节状态发布节点加入 launch 描述。
