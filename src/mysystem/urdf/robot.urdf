@@ -114,7 +114,7 @@
       </geometry>
     </collision>
   </link>
-  <link name="body">
+  <link name="aft_mapped">
     <inertial>
       <mass value="0.33968131"/>
       <origin xyz="-0.00021249 -0.00000279 -0.00035636" rpy="0 0 0"/>
@@ -163,8 +163,8 @@
     <origin xyz="0 0 -0.1039" rpy="0 0 0"/>
     <axis xyz="0 0 1"/>
   </joint>
-  <joint name="joint_body" type="fixed">
-    <parent link="body"/>
+  <joint name="joint_aft_mapped" type="fixed">
+    <parent link="aft_mapped"/>
     <child link="up"/>
     <origin xyz="0.0101109412 -0.0000009142 -0.1243801386" rpy="0.0000103944 0.78539265 -3.1415853037"/>
     <axis xyz="0 0 1"/>

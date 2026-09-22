@@ -5,3 +5,7 @@
 [submodule "src/pcd2pgm"]
     path = src/pcd2pgm
     url = git@github.com/destiny-DDD/pcd2pgm.git
+
+[submodule "src/pointcloud_to_laserscan"]
+    path = src/pointcloud_to_laserscan
+    url = git@github.com/destiny-DDD/pointcloud_to_laserscan.git
