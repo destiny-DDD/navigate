@@ -59,7 +59,7 @@
         publish:
             path_en: True                                   # 是否发布累积轨迹 Path；关闭可减少内存与带宽占用。
             scan_publish_en: True                           # 是否发布点云结果；关闭可显著减少网络与可视化开销。
-            scan_bodyframe_pub_en: False                    # 是否额外发布 IMU 机体坐标系下的扫描点云。
+            scan_bodyframe_pub_en: True                    # 是否额外发布 IMU 机体坐标系下的扫描点云。
             tf_send_en: True                                # 是否发布 camera_init 到 aft_mapped 的 TF 变换。
 
         pcd_save:

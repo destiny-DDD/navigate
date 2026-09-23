@@ -51,11 +51,29 @@ def generate_launch_description():  # 定义生成整个 launch 描述的函数�
         PythonLaunchDescriptionSource(system_launch_file),
         launch_arguments={'rviz': 'true'}.items(),
     )
+    pointcloud_to_laserscan = Node(
+        package="pointcloud_to_laserscan",
+        executable="pointcloud_to_laserscan_node",
+        name="pointcloud_to_laserscan",
+        remappings=[
+            ("cloud_in", "/cloud_registered_body"),
+            ("scan", "/scan"),
+        ],
+        parameters=[{
+            "target_frame": "base_link",
+            "min_height": 0.05,
+            "max_height": 0.35,
+            "range_min": 0.15,
+            "range_max": 2.5,
+            "use_inf": True,
+        }],
+    )
 
     ld = LaunchDescription()  # 创建一个空的 launch 描述对象。
     ld.add_action(livox_msg_launch)  # 先启动 MID360 驱动，为 Point-LIO 发布原始点云和 IMU。
     ld.add_action(point_lio_launch)  # 将 Point-LIO 启动动作加入 launch 描述。
     ld.add_action(libxr_launch)
     ld.add_action(system_launch)
+    ld.add_action(pointcloud_to_laserscan)
 
     return ld  # 返回完整的 launch 描述，供 ROS 2 执行。

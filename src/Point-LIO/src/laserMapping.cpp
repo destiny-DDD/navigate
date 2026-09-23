@@ -210,7 +210,7 @@ void publish_frame_body(
   sensor_msgs::msg::PointCloud2 laserCloudmsg;
   pcl::toROSMsg(*laserCloudIMUBody, laserCloudmsg);
   laserCloudmsg.header.stamp = get_ros_time(lidar_end_time);
-  laserCloudmsg.header.frame_id = "body";
+  laserCloudmsg.header.frame_id = "aft_mapped";
   pubLaserCloudFull_body->publish(laserCloudmsg);
 }
 
@@ -243,7 +243,7 @@ void publish_odometry(
   std::shared_ptr<tf2_ros::TransformBroadcaster> & tf_br)
 {
   odomAftMapped.header.frame_id = "camera_init";
-  odomAftMapped.child_frame_id = "body";
+  odomAftMapped.child_frame_id = "aft_mapped";
   if (publish_odometry_without_downsample) {
     odomAftMapped.header.stamp = get_ros_time(time_current);
   } else {
