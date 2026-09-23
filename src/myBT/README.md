@@ -4,11 +4,11 @@
 
 Nav2 中这个功能叫**行为树（Behavior Tree，BT）**。本包没有自定义 C++ 插件；
 `behavior_trees/navigate_to_pose.xml` 采用本机 Nav2 自带的
-`navigate_to_pose_w_replanning_and_recovery.xml`，由 `bt_navigator` 加载执行。
+导航节点组合，由 `bt_navigator` 加载执行，不包含恢复分支。
 
 你现有的 `mynav` 已经启动 Nav2：`explore_lite` 负责挑选探索目标，
 `bt_navigator` 负责执行目标的导航行为树。本包提供一个可以查看、修改和指定的树文件。
-它负责单目标导航及失败恢复，不包含巡逻、任务调度或自动选择探索目标的逻辑。
+它负责单目标导航，不包含巡逻、任务调度或自动选择探索目标的逻辑。
 
 ## 1. 编译
 
@@ -131,19 +131,13 @@ future = client.send_goal_async(goal)
 ## 5. 树内如何调用插件
 
 主干是 `ComputePathToPose → FollowPath`：以 1 Hz 重规划，同时持续跟踪路径。
-规划/控制失败且错误类型适合恢复时，先清对应的代价地图并重试；
-仍失败则进入系统恢复分支，依次尝试清局部和全局代价地图、旋转、等待、倒退，
-各次恢复后重新尝试导航，系统级最多重试 6 次。
-新目标到来时，`GoalUpdated` 允许中断当前恢复。
-**恢复动作包含原地旋转约 1.57 rad、等待 5 秒、倒退 0.30 m（0.15 m/s）。**
+规划或控制失败会直接返回失败，由上层决定是否重新发送目标。
 
 | XML 节点 | 调用的 Nav2 接口/作用 |
 | --- | --- |
 | `ComputePathToPose` | `/compute_path_to_pose`，默认规划器 ID 为 `GridBased` |
 | `FollowPath` | `/follow_path`，默认控制器 ID 为 `FollowPath` |
-| `ClearEntireCostmap` | `global_costmap/clear_entirely_global_costmap` 或对应 local 服务 |
-| `Spin` / `Wait` / `BackUp` | `behavior_server` 的 `/spin`、`/wait`、`/backup` Action |
-| `RecoveryNode` / `PipelineSequence` / `RoundRobin` | 控制树的执行和重试顺序 |
+| `PipelineSequence` | 控制规划与跟踪的执行顺序 |
 
 `{goal}` 由 Nav2 写入黑板；`{path}` 由规划节点输出，供控制节点读取。
 `planner_id`、`controller_id` 是 YAML 中配置的 ID，不是 C++ 类名。

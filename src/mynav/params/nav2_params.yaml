@@ -9,9 +9,10 @@
 # 以“# 参数名:”开头的示例是被禁用的配置：删除行首的 # 才会生效，保留 # 则只作为参考。
 
 # ==================== AMCL 定位 ====================
-# AMCL（自适应蒙特卡洛定位）使用 LaserScan 和保存的二维地图，估计机器人在 map 坐标系中的位置。
 amcl:
   ros__parameters:
+    set_initial_pose: true # 启动时用 initial_pose 初始化粒子滤波器并开始发布 map -> camera_init。
+    initial_pose: [0.0, 0.0, 0.0] # 机器人在静态地图中的初始 [x, y, yaw]，需要按实际起点调整。
     alpha1: 0.2 # 旋转运动引起的旋转噪声比例；数值越大，AMCL 越不信任旋转里程计。
     alpha2: 0.2 # 平移运动引起的旋转噪声比例；用于描述直线运动时的方向误差。
     alpha3: 0.2 # 平移运动引起的平移噪声比例；用于描述直线位移误差。
@@ -34,8 +35,6 @@ amcl:
     odom_frame_id: "camera_init" # 里程计坐标系；Point-LIO 的 camera_init 在 Nav2 中充当 odom。
     pf_err: 0.05 # 粒子滤波误差上限。
     pf_z: 0.99 # 粒子滤波置信度。
-    recovery_alpha_fast: 0.0 # 快速恢复粒子比例；0 表示关闭该恢复机制。
-    recovery_alpha_slow: 0.0 # 慢速恢复粒子比例；0 表示关闭该恢复机制。
     resample_interval: 1 # 每收到多少次激光数据重采样一次。
     robot_model_type: "nav2_amcl::DifferentialMotionModel" # AMCL 的里程计噪声模型；它不决定底盘控制方式，麦轮控制由 MPPI 的 Omni 模型负责。
     save_pose_rate: 0.5 # 保存上次位姿的频率（Hz）。
@@ -66,11 +65,6 @@ bt_navigator:
       plugin: "nav2_bt_navigator::NavigateToPoseNavigator" # 单目标导航插件。
     navigate_through_poses:
       plugin: "nav2_bt_navigator::NavigateThroughPosesNavigator" # 多目标导航插件。
-    # 下面两种行为树没有手动指定 XML，因此使用 Nav2 内置默认文件：
-    # navigate_to_pose_w_replanning_and_recovery.xml：单目标导航的 XML 行为树，包含重新规划和恢复动作。
-    # navigate_through_poses_w_replanning_and_recovery.xml：多个目标点依次导航的 XML 行为树。
-    # 如果需要自定义行为树，可以增加对应的 XML 文件路径参数，或在上层 launch 中覆盖这些参数。
-
     # plugin_lib_names 是“插件库名称列表”，用于注册额外的自定义行为树插件。
     # Nav2 内置插件会自动加载；当前没有自定义插件，所以通常不需要填写。
     # plugin_lib_names: [] # 被注释的示例：[] 表示列表为空，即不额外加载任何插件库。
@@ -314,7 +308,7 @@ smoother_server:
       do_refinement: True # 是否进行额外细化。
 
 # ==================== 行为服务器 ====================
-# 提供旋转、倒车、等待等导航恢复动作。
+# 保留行为服务器节点以满足 Nav2 生命周期链路，但不加载恢复动作插件。
 behavior_server:
   ros__parameters:
     local_costmap_topic: local_costmap/costmap_raw # 局部代价地图话题。
@@ -322,17 +316,9 @@ behavior_server:
     local_footprint_topic: local_costmap/published_footprint # 局部机器人轮廓话题。
     global_footprint_topic: global_costmap/published_footprint # 全局机器人轮廓话题。
     cycle_frequency: 10.0 # 行为服务器运行频率（Hz）。
-    behavior_plugins: ["spin", "backup", "drive_on_heading", "assisted_teleop", "wait"] # 启用的行为。
-    spin:
-      plugin: "nav2_behaviors::Spin" # 原地旋转行为。
-    backup:
-      plugin: "nav2_behaviors::BackUp" # 倒车行为。
-    drive_on_heading:
-      plugin: "nav2_behaviors::DriveOnHeading" # 沿指定方向运动。
+    behavior_plugins: ["wait"]
     wait:
-      plugin: "nav2_behaviors::Wait" # 原地等待行为。
-    assisted_teleop:
-      plugin: "nav2_behaviors::AssistedTeleop" # 辅助遥控行为。
+      plugin: "nav2_behaviors::Wait"
     local_frame: camera_init # 局部运动坐标系。
     global_frame: map # 全局地图坐标系。
     robot_base_frame: base_link # 机器人中心坐标系。

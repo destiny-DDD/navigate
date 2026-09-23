@@ -160,7 +160,7 @@
   <joint name="joint_up" type="continuous">
     <parent link="up"/>
     <child link="base_link"/>
-    <origin xyz="0 0 -0.1039" rpy="0 0 0"/>
+    <origin xyz="0 0 -0.1039" rpy="0 0 3.141592653589793"/>
     <axis xyz="0 0 1"/>
   </joint>
   <joint name="joint_aft_mapped" type="fixed">
