@@ -59,6 +59,9 @@ def generate_launch_description():
             'autostart': autostart,
             'slam': 'False',
             'use_localization': use_localization,
+            # RViz is intentionally disabled; visualization is provided by
+            # the single Foxglove bridge launched from mycontrol.
+            'use_rviz': 'False',
         }.items(),
     )
 

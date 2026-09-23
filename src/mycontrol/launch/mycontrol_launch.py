@@ -30,10 +30,15 @@ def generate_launch_description():  # 定义生成整个 launch 描述的函数�
         "launch",
         "ros2_libxr_launch.py",
     )
-    system_launch_file = os.path.join(
+    # system_launch_file = os.path.join(
+    #     system_share,
+    #     "launch",
+    #     "mysystem_rviz_launch.py",
+    # )
+    system_foxglove_launch_file = os.path.join(
         system_share,
         "launch",
-        "mysystem_rviz_launch.py",
+        "mysystem_love_launch.py",
     )
 
     livox_msg_launch = IncludeLaunchDescription(  # 创建包含 MID360 驱动的启动动作。
@@ -47,9 +52,13 @@ def generate_launch_description():  # 定义生成整个 launch 描述的函数�
         PythonLaunchDescriptionSource(libxr_launch_file),
         launch_arguments={"vid":"16d0","pid":"1492"}.items(),
     )
-    system_launch = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource(system_launch_file),
-        launch_arguments={'rviz': 'true'}.items(),
+    # system_launch = IncludeLaunchDescription(
+    #     PythonLaunchDescriptionSource(system_launch_file),
+    #     launch_arguments={'rviz': 'true'}.items(),
+    # )
+    system_foxglove_launch = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(system_foxglove_launch_file),
+        launch_arguments={'use_foxglove': 'true'}.items(),
     )
     pointcloud_to_laserscan = Node(
         package="pointcloud_to_laserscan",
@@ -65,6 +74,9 @@ def generate_launch_description():  # 定义生成整个 launch 描述的函数�
             "max_height": 0.35,
             "range_min": 0.15,
             "range_max": 2.5,
+            # Point-LIO and the laser conversion can be tens of milliseconds
+            # apart; keep the scan timestamp inside the TF lookup window.
+            "transform_tolerance": 0.2,
             "use_inf": True,
         }],
     )
@@ -73,7 +85,8 @@ def generate_launch_description():  # 定义生成整个 launch 描述的函数�
     ld.add_action(livox_msg_launch)  # 先启动 MID360 驱动，为 Point-LIO 发布原始点云和 IMU。
     ld.add_action(point_lio_launch)  # 将 Point-LIO 启动动作加入 launch 描述。
     ld.add_action(libxr_launch)
-    ld.add_action(system_launch)
+    # ld.add_action(system_launch)
+    ld.add_action(system_foxglove_launch)
     ld.add_action(pointcloud_to_laserscan)
 
     return ld  # 返回完整的 launch 描述，供 ROS 2 执行。

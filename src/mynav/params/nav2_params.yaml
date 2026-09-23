@@ -11,8 +11,8 @@
 # ==================== AMCL 定位 ====================
 amcl:
   ros__parameters:
-    set_initial_pose: true # 启动时用 initial_pose 初始化粒子滤波器并开始发布 map -> camera_init。
-    initial_pose: [0.0, 0.0, 0.0] # 机器人在静态地图中的初始 [x, y, yaw]，需要按实际起点调整。
+    set_initial_pose: false # 不用固定原点启动；启动后由 RViz 的 2D Pose Estimate 提供真实初始位姿。
+    initial_pose: [0.0, 0.0, 0.0] # 仅保留参数默认值，set_initial_pose=false 时不会自动使用它。
     alpha1: 0.2 # 旋转运动引起的旋转噪声比例；数值越大，AMCL 越不信任旋转里程计。
     alpha2: 0.2 # 平移运动引起的旋转噪声比例；用于描述直线运动时的方向误差。
     alpha3: 0.2 # 平移运动引起的平移噪声比例；用于描述直线位移误差。
@@ -36,7 +36,7 @@ amcl:
     pf_err: 0.05 # 粒子滤波误差上限。
     pf_z: 0.99 # 粒子滤波置信度。
     resample_interval: 1 # 每收到多少次激光数据重采样一次。
-    robot_model_type: "nav2_amcl::DifferentialMotionModel" # AMCL 的里程计噪声模型；它不决定底盘控制方式，麦轮控制由 MPPI 的 Omni 模型负责。
+    robot_model_type: "nav2_amcl::OmniMotionModel" # 麦轮可横移，AMCL 必须使用全向里程计运动模型。
     save_pose_rate: 0.5 # 保存上次位姿的频率（Hz）。
     sigma_hit: 0.2 # 激光命中障碍物时的高斯噪声标准差。
     tf_broadcast: true # 是否发布 map -> camera_init 的定位 TF。
@@ -316,9 +316,17 @@ behavior_server:
     local_footprint_topic: local_costmap/published_footprint # 局部机器人轮廓话题。
     global_footprint_topic: global_costmap/published_footprint # 全局机器人轮廓话题。
     cycle_frequency: 10.0 # 行为服务器运行频率（Hz）。
-    behavior_plugins: ["wait"]
+    behavior_plugins: ["spin", "backup", "drive_on_heading", "assisted_teleop", "wait"]
+    spin:
+      plugin: "nav2_behaviors::Spin" # 默认导航行为树需要的原地旋转恢复动作。
+    backup:
+      plugin: "nav2_behaviors::BackUp" # 默认导航行为树需要的倒车恢复动作。
+    drive_on_heading:
+      plugin: "nav2_behaviors::DriveOnHeading" # 默认导航行为树需要的定向行驶恢复动作。
     wait:
-      plugin: "nav2_behaviors::Wait"
+      plugin: "nav2_behaviors::Wait" # 默认导航行为树需要的等待恢复动作。
+    assisted_teleop:
+      plugin: "nav2_behaviors::AssistedTeleop" # 默认导航行为树需要的辅助遥控恢复动作。
     local_frame: camera_init # 局部运动坐标系。
     global_frame: map # 全局地图坐标系。
     robot_base_frame: base_link # 机器人中心坐标系。
