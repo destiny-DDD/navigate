@@ -107,18 +107,19 @@ controller_server:
       plugin: "nav2_mppi_controller::MPPIController" # 加载 MPPI（模型预测路径积分）控制器；它通过采样候选轨迹控制麦轮全向运动。
       time_steps: 56 # 每条预测轨迹包含的时间步数。
       model_dt: 0.05 # 每个预测时间步的时长（秒）。
-      batch_size: 2000 # 每次采样的轨迹数量，越大越稳定但更耗 CPU。
-      ax_max: 3.0 # X 方向最大加速度（米/秒²）。
-      ax_min: -3.0 # X 方向最大减速度（米/秒²）。
-      ay_max: 3.0 # 麦轮 Y 方向最大加速度（米/秒²）。
-      ay_min: -3.0 # 麦轮 Y 方向最大减速度（米/秒²）。
-      az_max: 3.5 # 角加速度上限（弧度/秒²）。
+      batch_size: 500 # 每次采样的轨迹数量，越大越稳定但更耗 CPU。
+      ax_max: 0.5 # X 方向最大加速度（米/秒²）。
+      ax_min: -0.8 # X 方向最大减速度（米/秒²）。
+      ay_max: 0.5 # 麦轮 Y 方向最大加速度（米/秒²）。
+      ay_min: -0.8 # 麦轮 Y 方向最大减速度（米/秒²）。
+      az_max: 0.8 # 角加速度上限（弧度/秒²）。
       vx_std: 0.2 # X 方向采样噪声标准差。
       vy_std: 0.2 # Y 方向采样噪声标准差。
       wz_std: 0.4 # 旋转采样噪声标准差。
-      vx_max: 0.15 # 最大前进速度（米/秒）。
-      vx_min: -0.15 # 最小前进速度，负值表示允许倒车（米/秒）。
-      vy_max: 0.15 # 最大横移速度（米/秒）。
+      vx_max: 0.2 # 最大前进速度（米/秒）。
+      vx_min: -0.2 # 最小前进速度，负值表示允许倒车（米/秒）。
+      vy_max: 0.2 # 最大横移速度（米/秒）。
+      vy_min: -0.2 # 最小横移速度，负值表示允许反向横移（米/秒）。
       wz_max: 0.2 # 最大旋转速度（弧度/秒）。
       iteration_count: 1 # 每次控制更新的优化迭代次数。
       prune_distance: 1.7 # 从路径起点裁剪的距离（米）。
@@ -126,7 +127,7 @@ controller_server:
       temperature: 0.3 # MPPI 采样轨迹权重温度。
       gamma: 0.015 # MPPI 代价平滑参数。
       motion_model: "Omni" # 运动模型为全向（Omni）；麦轮可横移，不能使用只支持前进和旋转的 DiffDrive 差速模型。
-      visualize: true # 是否发布 MPPI 轨迹供 RViz 显示。
+      visualize: false # 是否发布 MPPI 轨迹供 RViz 显示。
       regenerate_noises: true # 每次控制周期是否重新生成采样噪声。
       TrajectoryVisualizer:
         trajectory_step: 5 # RViz 每隔多少条轨迹显示一条。
@@ -334,7 +335,7 @@ behavior_server:
     simulate_ahead_time: 2.0 # 行为动作提前模拟的时间（秒）。
     max_rotational_vel: 0.1 # 行为动作最大旋转速度（弧度/秒）。
     min_rotational_vel: 0.05 # 行为动作最小旋转速度（弧度/秒）。
-    rotational_acc_lim: 3.2 # 行为动作最大角加速度。
+    rotational_acc_lim: 0.8 # 行为动作最大角加速度。
 
 # ==================== 航点跟随 ====================
 waypoint_follower:
@@ -382,10 +383,10 @@ velocity_smoother:
     stamp_smoothed_velocity_with_smoothing_time: False # 是否用平滑后的时间戳。
     scale_velocities: False # 是否按比例缩放三个方向的速度。
     feedback: "OPEN_LOOP" # OPEN_LOOP（开环）不使用实际速度反馈；若里程计可靠，可改为 CLOSED_LOOP（闭环）。
-    max_velocity: [0.5, 0.5, 2.0] # 三个元素依次是 [前后、左右、旋转] 的最大速度，单位分别为 m/s、m/s、rad/s。
-    min_velocity: [-0.5, -0.5, -2.0] # 三个元素依次是 [前后、左右、旋转] 的最小速度；负值代表反向运动。
-    max_accel: [2.5, 2.5, 3.2] # 三个方向的最大加速度。
-    max_decel: [-2.5, -2.5, -3.2] # 三个方向的最大减速度。
+    max_velocity: [0.2, 0.2, 0.2] # 三个元素依次是 [前后、左右、旋转] 的最大速度，单位分别为 m/s、m/s、rad/s。
+    min_velocity: [-0.2, -0.2, -0.2] # 三个元素依次是 [前后、左右、旋转] 的最小速度；负值代表反向运动。
+    max_accel: [0.5, 0.5, 0.8] # 三个方向的最大加速度。
+    max_decel: [-0.8, -0.8, -1.0] # 三个方向的最大减速度。
     odom_topic: "aft_mapped_to_init" # CLOSED_LOOP 模式下读取的 Point-LIO 里程计话题；当前开环模式仍保留该名称供切换使用。
     odom_duration: 0.1 # 里程计速度有效时间（秒）。
     deadband_velocity: [0.0, 0.0, 0.0] # 三个方向的小速度死区。

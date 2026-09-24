@@ -45,7 +45,7 @@
             acc_cov_input: 0.1                              # 以 IMU 作为状态输入模型时的加速度输入噪声协方差。
             plane_thr: 0.1                                  # 平面判定阈值；越小表示对平面平整度要求越高。
             match_s: 81.0                                   # 点到平面匹配筛选系数；用于决定特征点是否参与匹配。
-            ivox_grid_resolution: 2.0                       # IVox 地图体素分辨率（米）；影响近邻检索粒度。
+            ivox_grid_resolution: 0.2                       # IVox 地图体素分辨率（米）；影响近邻检索粒度。
             gravity: [ 0.0, 0.0, -9.810 ]                   # 世界坐标系中的重力向量（m/s²），需与实际坐标轴方向一致。
             gravity_init: [ 0.0, 0.0, -9.810 ]              # 初始 IMU 坐标系中的先验重力；静止初始化或不启用 IMU 时尤其重要。
             extrinsic_T: [ -0.011, -0.02329, 0.04412 ]      # 雷达到 IMU 的平移外参（米）；仅在已正确标定时修改。
@@ -57,11 +57,11 @@
             publish_odometry_without_downsample: False      # True 时按更高频率发布未下采样里程计；False 时按雷达帧节奏发布。
 
         publish:
-            path_en: True                                   # 是否发布累积轨迹 Path；关闭可减少内存与带宽占用。
+            path_en: False                                   # 是否发布累积轨迹 Path；关闭可减少内存与带宽占用。
             scan_publish_en: True                           # 是否发布点云结果；关闭可显著减少网络与可视化开销。
             scan_bodyframe_pub_en: True                    # 是否额外发布 IMU 机体坐标系下的扫描点云。
             tf_send_en: True                                # 是否发布 camera_init 到 aft_mapped 的 TF 变换。
 
         pcd_save:
-            pcd_save_en: True                              # 是否将建图点云保存为 PCD 文件。
+            pcd_save_en: False                              # 是否将建图点云保存为 PCD 文件。
             interval: -1                                    # 每个 PCD 文件包含的雷达帧数；-1 表示全部写入一个文件，长时间运行可能耗尽内存。
